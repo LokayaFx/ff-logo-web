@@ -263,8 +263,9 @@
             o.style.opacity = '0';
             setTimeout(() => { o.style.display = 'none'; }, 400);
         }
+    
     </script>
-
+    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -285,14 +286,18 @@
 
         // 1. Check Login State (Page Load වෙනකොටම වැඩ කරයි)
         onAuthStateChanged(auth, (user) => {
-            if (user) {
-                console.log("User logged in:", user.displayName);
-                updateUIForLogin(user);
-            } else {
-                console.log("No user logged in");
-            }
-        });
-
+    if (user) {
+        // බටන් එක වෙනුවට නම පෙන්වීම
+        const userName = user.displayName ? user.displayName.split(' ')[0] : "User";
+        const btn = document.querySelector('button[onclick*="login-modal"]');
+        if(btn) btn.innerText = "Hi, " + userName;
+        
+        // Google Login බටන් එක හංගන්න
+        const gBtn = document.querySelector('button[onclick*="handleGoogleLogin"]');
+        if(gBtn) gBtn.style.display = 'none';
+    }
+});
+        
         // 2. Handle Google Login (Redirect Method for Mobile)
         window.handleGoogleLogin = async () => {
             try {
