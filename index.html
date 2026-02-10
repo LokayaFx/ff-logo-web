@@ -256,18 +256,20 @@
                 setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10);
             }
         }
-
+            <script>
         function closeAllModals() {
             document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('modal-active'));
             const o = document.getElementById('modal-overlay');
-            o.style.opacity = '0';
-            setTimeout(() => { o.style.display = 'none'; }, 400);
-    
+            if (o) {
+                o.style.opacity = '0';
+                setTimeout(() => { o.style.display = 'none'; }, 400);
+            }
+        }
     </script>
-    
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithRedirect, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCgb-GnbwrLeslBvWpizverub1w-IpejPQ",
@@ -283,58 +285,47 @@
         const auth = getAuth();
         const provider = new GoogleAuthProvider();
 
-        // 1. Check Login State (Page Load වෙනකොටම වැඩ කරයි)
+        // 1. User ලොග් වෙලාද කියලා බලනවා
         onAuthStateChanged(auth, (user) => {
-    if (user) {
-        // බටන් එක වෙනුවට නම පෙන්වීම
-        const userName = user.displayName ? user.displayName.split(' ')[0] : "User";
-        const btn = document.querySelector('button[onclick*="login-modal"]');
-        if(btn) btn.innerText = "Hi, " + userName;
-        
-        // Google Login බටන් එක හංගන්න
-        const gBtn = document.querySelector('button[onclick*="handleGoogleLogin"]');
-        if(gBtn) gBtn.style.display = 'none';
-    }
-});
-        
-        // 2. Handle Google Login (Redirect Method for Mobile)
+            if (user) {
+                const userName = user.displayName ? user.displayName.split(' ')[0] : "User";
+                
+                // LOG IN බටන් එකේ නම වෙනස් කිරීම
+                const btn = document.querySelector('button[onclick*="login-modal"]');
+                if(btn) btn.innerText = "Hi, " + userName;
+                
+                // Google Login බටන් එක හංගනවා
+                const gBtn = document.querySelector('button[onclick*="handleGoogleLogin"]');
+                if(gBtn) gBtn.style.display = 'none';
+            }
+        });
+
+        // 2. Google Login Function
         window.handleGoogleLogin = async () => {
             try {
-                // Mobile Phones වල Popup Block වෙන නිසා Redirect දානවා
                 await signInWithRedirect(auth, provider);
             } catch (error) {
-                console.error("Login Error:", error);
-                alert("Google Login Error: " + error.message);
+                alert("Login Error: " + error.message);
             }
         };
 
-        // 3. UI Update Function (බටන් හංගලා නම පෙන්වීම)
-        function updateUIForLogin(user) {
-            closeAllModals();
-            const userName = user.displayName ? user.displayName.split(' ')[0] : "User";
-            
-            // Header HTML එක හදනවා
-            const profileHTML = `
-                <div class="user-profile-badge">
-                    <span>👋 Hi, ${userName}</span>
-                </div>
-            `;
-
-            // Slim Header එකේ බටන් මාරු කිරීම
-            const slimContainer = document.getElementById('slim-auth-container');
-            if(slimContainer) slimContainer.innerHTML = profileHTML;
-
-            // Main Header එකේ බටන් මාරු කිරීම
-            const mainContainer = document.getElementById('main-auth-container');
-            if(mainContainer) mainContainer.innerHTML = profileHTML;
-        }
-
-        // 4. Email Sign Up
+        // 3. Email Sign Up Function
         window.handleSignUp = async () => {
             const email = document.querySelector('#signup-modal input[type="email"]').value;
             const password = document.querySelector('#signup-modal input[type="password"]').value;
-            const name = document.querySelector('#signup-modal input[type="text"]').value;
             
-            if(!email || !password) { alert("Please fill all fields"); return; }
-            
-            try 
+            if(!email || !password) {
+                alert("Please fill all fields");
+                return;
+            }
+
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                alert("Account Created Successfully!");
+                closeAllModals();
+            } catch (error) {
+                alert("Sign Up Error: " + error.message);
+            }
+        };
+    </script>
+    
