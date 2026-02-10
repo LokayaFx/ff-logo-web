@@ -265,72 +265,140 @@
         }
     </script>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+        getAuth, 
+        GoogleAuthProvider, 
+        signInWithPopup, 
+        signInWithRedirect, 
+        getRedirectResult, 
+        createUserWithEmailAndPassword, 
+        signInWithEmailAndPassword, 
+        onAuthStateChanged, 
+        signOut 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCgb-GnbwrLeslBvWpizverub1w-IpejPQ",
-            authDomain: "ff-logo-website.firebaseapp.com",
-            projectId: "ff-logo-website",
-            storageBucket: "ff-logo-website.firebasestorage.app",
-            messagingSenderId: "1030394135220",
-            appId: "1:1030394135220:web:ad82df8a8eafd8d4cd4de1",
-            measurementId: "G-EQCZXDFG1Y"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyCgb-GnbwrLeslBvWpizverub1w-IpejPQ",
+        authDomain: "ff-logo-website.firebaseapp.com",
+        projectId: "ff-logo-website",
+        storageBucket: "ff-logo-website.firebasestorage.app",
+        messagingSenderId: "1030394135220",
+        appId: "1:1030394135220:web:ad82df8a8eafd8d4cd4de1",
+        measurementId: "G-EQCZXDFG1Y"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth();
-        const provider = new GoogleAuthProvider();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
-        // 1. Check Login State (Page Load වෙනකොටම වැඩ කරයි)
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                console.log("User logged in:", user.displayName);
-                updateUIForLogin(user);
-            } else {
-                console.log("No user logged in");
+    // 1. Listen for auth state changes
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            console.log("User logged in:", user.displayName, user.uid);
+            updateUIForLogin(user);
+        } else {
+            console.log("No user logged in");
+            // Optional: reset UI to logged-out state if needed
+        }
+    });
+
+    // 2. Google Login (using redirect - better for mobile)
+    window.handleGoogleLogin = async () => {
+        try {
+            await signInWithRedirect(auth, provider);
+        } catch (error) {
+            console.error("Google Login Error:", error);
+            alert("Google Login failed: " + error.message);
+        }
+    };
+
+    // Handle redirect result after coming back from Google
+    getRedirectResult(auth)
+        .then((result) => {
+            if (result?.user) {
+                console.log("Google redirect login success:", result.user.displayName);
+                updateUIForLogin(result.user);
             }
+        })
+        .catch((error) => {
+            console.error("Redirect result error:", error);
         });
 
-        // 2. Handle Google Login (Redirect Method for Mobile)
-        window.handleGoogleLogin = async () => {
-            try {
-                // Mobile Phones වල Popup Block වෙන නිසා Redirect දානවා
-                await signInWithRedirect(auth, provider);
-            } catch (error) {
-                console.error("Login Error:", error);
-                alert("Google Login Error: " + error.message);
-            }
-        };
+    // 3. Update UI after successful login
+    function updateUIForLogin(user) {
+        closeAllModals();
+        const userName = user.displayName ? user.displayName.split(' ')[0] : "User";
 
-        // 3. UI Update Function (බටන් හංගලා නම පෙන්වීම)
-        function updateUIForLogin(user) {
-            closeAllModals();
-            const userName = user.displayName ? user.displayName.split(' ')[0] : "User";
-            
-            // Header HTML එක හදනවා
-            const profileHTML = `
-                <div class="user-profile-badge">
-                    <span>👋 Hi, ${userName}</span>
-                </div>
-            `;
+        const profileHTML = `
+            <div class="user-profile-badge">
+                <span>👋 Hi, ${userName}</span>
+            </div>
+        `;
 
-            // Slim Header එකේ බටන් මාරු කිරීම
-            const slimContainer = document.getElementById('slim-auth-container');
-            if(slimContainer) slimContainer.innerHTML = profileHTML;
+        const slimContainer = document.getElementById('slim-auth-container');
+        if (slimContainer) slimContainer.innerHTML = profileHTML;
 
-            // Main Header එකේ බටන් මාරු කිරීම
-            const mainContainer = document.getElementById('main-auth-container');
-            if(mainContainer) mainContainer.innerHTML = profileHTML;
+        const mainContainer = document.getElementById('main-auth-container');
+        if (mainContainer) mainContainer.innerHTML = profileHTML;
+    }
+
+    // 4. Email/Password Sign Up
+    window.handleSignUp = async () => {
+        const nameInput    = document.querySelector('#signup-modal input[type="text"]');
+        const emailInput   = document.querySelector('#signup-modal input[type="email"]');
+        const passwordInput = document.querySelector('#signup-modal input[type="password"]');
+
+        const name     = nameInput?.value.trim()     || "";
+        const email    = emailInput?.value.trim()    || "";
+        const password = passwordInput?.value.trim() || "";
+
+        if (!name || !email || !password) {
+            alert("Please fill in all fields");
+            return;
         }
 
-        // 4. Email Sign Up
-        window.handleSignUp = async () => {
-            const email = document.querySelector('#signup-modal input[type="email"]').value;
-            const password = document.querySelector('#signup-modal input[type="password"]').value;
-            const name = document.querySelector('#signup-modal input[type="text"]').value;
-            
-            if(!email || !password) { alert("Please fill all fields"); return; }
-            
-            try 
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            console.log("Sign-up successful:", userCredential.user.uid);
+
+            // Optional: update profile display name
+            // (you would normally use updateProfile() here, but requires import)
+
+            updateUIForLogin(userCredential.user);
+        } catch (error) {
+            console.error("Sign-up error:", error.code, error.message);
+            let msg = "Sign-up failed";
+            if (error.code === 'auth/email-already-in-use') {
+                msg = "This email is already registered";
+            } else if (error.code === 'auth/weak-password') {
+                msg = "Password should be at least 6 characters";
+            } else if (error.code === 'auth/invalid-email') {
+                msg = "Invalid email format";
+            } else {
+                msg += ": " + error.message;
+            }
+            alert(msg);
+        }
+    };
+
+    // 5. (Optional) Email/Password Login - if you want to implement it later
+    window.handleLogin = async () => {
+        const email    = document.querySelector('#login-modal input[type="email"]')?.value?.trim();
+        const password = document.querySelector('#login-modal input[type="password"]')?.value?.trim();
+
+        if (!email || !password) {
+            alert("Please enter email and password");
+            return;
+        }
+
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            updateUIForLogin(userCredential.user);
+        } catch (error) {
+            alert("Login failed: " + error.message);
+        }
+    };
+
+</script> 
