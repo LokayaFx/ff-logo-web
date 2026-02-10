@@ -272,10 +272,8 @@
   // --- Google Login Function ---
   window.handleGoogleLogin = async () => {
     try {
-        // signInWithPopup වෙනුවට signInWithRedirect දාන්න
-        await signInWithRedirect(auth, provider);
+        await signInWithRedirect(auth, provider); // මෙතන popup වෙනුවට redirect දාන්න
     } catch (error) {
-        console.error(error);
         alert("Google Login Error: " + error.message);
     }
 };
