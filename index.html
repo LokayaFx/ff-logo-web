@@ -31,7 +31,7 @@
 
         .glass-btn {
             background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.08); 
             backdrop-filter: blur(12px);
             padding: 8px 18px;
             border-radius: 14px;
@@ -60,6 +60,20 @@
         #coming-soon-layer { position: fixed; inset: 0; background: rgba(13, 13, 18, 0.98); backdrop-filter: blur(20px); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         #slim-header { position: fixed; top: -80px; left: 0; width: 100%; z-index: 1000; background: rgba(13, 13, 18, 0.95); backdrop-filter: blur(15px); height: 65px; display: flex; align-items: center; transition: top 0.4s ease; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
         #slim-header.visible { top: 0; }
+        
+        /* User Profile Style */
+        .user-profile-badge {
+            background: rgba(102, 56, 166, 0.2);
+            border: 1px solid rgba(102, 56, 166, 0.5);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: white;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
     </style>
 </head>
 <body>
@@ -67,7 +81,7 @@
     <div id="coming-soon-layer">
         <h2 class="text-5xl font-bold hero-title mb-4 tracking-tighter">Coming Soon</h2>
         <button onclick="hideComingSoon()" class="glass-btn active">Go Back</button>
-#8098ff    </div>
+    </div>
 
     <div id="slim-header" class="px-6">
         <div class="flex justify-between items-center w-full max-w-6xl mx-auto">
@@ -75,13 +89,11 @@
                 <div onclick="window.scrollTo(0,0)" class="space-y-1.5 cursor-pointer"><div class="w-5 h-0.5 bg-white/60"></div><div class="w-5 h-0.5 bg-white/60"></div><div class="w-5 h-0.5 bg-white/60"></div></div>
                 <div class="font-bold uppercase text-[10px] tracking-[0.3em] text-white/70">Lokaya gFx</div>
             </div>
-<button onclick="toggleModal('login-modal', true)" class="bg-purple-600/20 border border-purple-500/30 px-4 py-1.5 rounded-full text-[9px] uppercase">
-    Log in
-</button>
-
-<button onclick="handleGoogleLogin()" class="bg-white/10 border border-white/20 px-4 py-1.5 rounded-full text-[9px] uppercase ml-2">
-    Continue with Google
-</button>
+            
+            <div id="slim-auth-container" class="flex items-center gap-2">
+                <button onclick="toggleModal('login-modal', true)" class="bg-purple-600/20 border border-purple-500/30 px-4 py-1.5 rounded-full text-[9px] uppercase">Log in</button>
+                <button onclick="handleGoogleLogin()" class="bg-white/10 border border-white/20 px-4 py-1.5 rounded-full text-[9px] uppercase ml-2">Continue with Google</button>
+            </div>
         </div>
     </div>
 
@@ -92,7 +104,10 @@
                     <div onclick="window.scrollTo(0,0)" class="space-y-1.5 cursor-pointer"><div class="w-6 h-0.5 bg-white/80"></div><div class="w-6 h-0.5 bg-white/80"></div><div class="w-6 h-0.5 bg-white/80"></div></div>
                     <div class="text-lg font-bold uppercase tracking-widest text-white/90">Lokaya gFx</div>
                 </div>
-                <button onclick="toggleModal('login-modal', true)" class="bg-white/5 border border-white/10 px-4 py-1.5 rounded-full text-[10px] uppercase">Log in</button>
+                
+                <div id="main-auth-container">
+                    <button onclick="toggleModal('login-modal', true)" class="bg-white/5 border border-white/10 px-4 py-1.5 rounded-full text-[10px] uppercase">Log in</button>
+                </div>
             </div>
             <nav class="flex justify-center gap-3">
                 <button class="glass-btn active">Logos</button>
@@ -139,18 +154,17 @@
             <input type="email" placeholder="Email Address" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
             <input type="password" placeholder="Password" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
         </div>
-        <button class="w-full py-4 bg-[#6638A6] rounded-2xl font-bold uppercase tracking-widest mb-4">Log In</button>
+        <button onclick="handleLogin()" class="w-full py-4 bg-[#6638A6] rounded-2xl font-bold uppercase tracking-widest mb-4">Log In</button>
         <div class="relative flex items-center justify-center my-4">
-    <div class="flex-grow border-t border-white/10"></div>
-    <span class="flex-shrink mx-4 text-gray-500 text-[10px] uppercase">OR</span>
-    <div class="flex-grow border-t border-white/10"></div>
-</div>
-
-<button onclick="handleGoogleLogin()" class="w-full py-4 bg-white text-black rounded-2xl font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-95 transition-transform">
-    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
-    <span class="text-xs">Continue with Google</span>
-</button>
-<!--  -->        <p class="text-center text-xs text-white/30">Don't have an account? <span onclick="toggleModal('signup-modal', true)" class="text-purple-500 font-bold cursor-pointer">Sign Up</span></p>
+            <div class="flex-grow border-t border-white/10"></div>
+            <span class="flex-shrink mx-4 text-gray-500 text-[10px] uppercase">OR</span>
+            <div class="flex-grow border-t border-white/10"></div>
+        </div>
+        <button onclick="handleGoogleLogin()" class="w-full py-4 bg-white text-black rounded-2xl font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-95 transition-transform">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
+            <span class="text-xs">Continue with Google</span>
+        </button>
+        <p class="text-center text-xs text-white/30">Don't have an account? <span onclick="toggleModal('signup-modal', true)" class="text-purple-500 font-bold cursor-pointer">Sign Up</span></p>
     </div>
 
     <div id="signup-modal" class="custom-modal fixed bottom-0 left-0 right-0 bg-[#0d0d12] rounded-t-[40px] z-[101] p-8 border-t border-white/5">
@@ -161,20 +175,18 @@
             <input type="email" placeholder="Email Address" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
             <input type="password" placeholder="Password" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
         </div>
-        <button class="w-full py-4 bg-[#6638A6] rounded-2xl font-bold uppercase tracking-widest mb-6">Sign Up</button>
+        <button onclick="handleSignUp()" class="w-full py-4 bg-[#6638A6] rounded-2xl font-bold uppercase tracking-widest mb-6">Sign Up</button>
         <p class="text-center text-xs text-white/30">Already have an account? <span onclick="toggleModal('login-modal', true)" class="text-purple-500 font-bold cursor-pointer">Log In</span></p>
     </div>
 
     <div id="logo-modal" class="custom-modal fixed bottom-0 left-0 right-0 bg-[#121217] rounded-t-[40px] z-[101] p-8 border-t border-white/5">
         <div class="w-12 h-1 bg-white/10 rounded-full mx-auto mb-6"></div>
         <h3 class="text-center font-bold mb-6 uppercase text-white/60 tracking-widest text-sm">Select Your Logo Style</h3>
-        
         <div class="grid grid-cols-3 gap-3 mb-8">
             <div onclick="updateCurrentLogo(1)" class="aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-transform"><img src="https://via.placeholder.com/150?text=Style1" class="w-full h-full object-cover"></div>
             <div onclick="updateCurrentLogo(2)" class="aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-transform"><img src="https://via.placeholder.com/150?text=Style2" class="w-full h-full object-cover"></div>
             <div onclick="updateCurrentLogo(3)" class="aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-transform"><img src="https://via.placeholder.com/150?text=Style3" class="w-full h-full object-cover"></div>
         </div>
-
         <div class="space-y-3">
             <button onclick="closeAllModals()" class="w-full py-4 bg-[#6638A6] rounded-2xl font-bold uppercase text-xs tracking-widest shadow-lg">Done</button>
             <button onclick="toggleModal('char-modal', true)" class="w-full py-4 bg-white/5 border border-white/10 rounded-2xl font-bold uppercase text-xs tracking-widest">Change Character</button>
@@ -185,8 +197,7 @@
     <div id="char-modal" class="custom-modal fixed bottom-0 left-0 right-0 bg-[#0d0d12] rounded-t-[40px] z-[110] p-8 border-t border-purple-500/20">
         <div class="w-12 h-1 bg-purple-500/20 rounded-full mx-auto mb-6"></div>
         <h3 id="char-title" class="text-center font-bold mb-6 text-purple-400 uppercase tracking-widest text-sm">Select Character</h3>
-        <div id="char-grid" class="grid grid-cols-3 gap-3 max-h-[40vh] overflow-y-auto mb-8 p-1">
-            </div>
+        <div id="char-grid" class="grid grid-cols-3 gap-3 max-h-[40vh] overflow-y-auto mb-8 p-1"></div>
         <div class="space-y-3">
             <button onclick="closeAllModals()" class="w-full py-5 bg-[#6638A6] rounded-2xl font-bold uppercase text-xs tracking-widest shadow-xl">Done</button>
             <button onclick="toggleModal('logo-modal', true)" class="w-full py-4 text-white/30 font-bold uppercase text-xs tracking-widest">Back</button>
@@ -236,88 +247,90 @@
         };
 
         function toggleModal(id, show) {
-            closeAllModals();
-            const m = document.getElementById(id);
-            const o = document.getElementById('modal-overlay');
-            if(show) { o.style.display = 'block'; setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10); }
+            if (show) {
+                // Close other modals first
+                document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('modal-active'));
+                const m = document.getElementById(id);
+                const o = document.getElementById('modal-overlay');
+                o.style.display = 'block'; 
+                setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10);
+            }
         }
 
-        // ලොග් වුණාම බටන් අයින් කරලා නම පෙන්වීම
-const loginBtn = document.querySelector('button[onclick*="login-modal"]');
-const googleBtn = document.querySelector('button[onclick*="handleGoogleLogin"]');
-
-if (loginBtn) loginBtn.style.display = 'none';
-if (googleBtn) googleBtn.style.display = 'none';
-
-// නම පෙන්වන්න අලුත් Element එකක් හැදීම
-const nav = document.querySelector('nav') || document.body; 
-const userDisplay = document.createElement('span');
-userDisplay.innerText = "Hi, " + result.user.displayName;
-userDisplay.style.color = "white";
-userDisplay.style.marginLeft = "10px";
-nav.appendChild(userDisplay);
-
+        function closeAllModals() {
+            document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('modal-active'));
+            const o = document.getElementById('modal-overlay');
+            o.style.opacity = '0';
+            setTimeout(() => { o.style.display = 'none'; }, 400);
         }
     </script>
-</body>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-  // ඔයා එවපු Screenshot (431924.png) එකේ තිබුණු ඔයාගේම Config එක
-  const firebaseConfig = {
-  apiKey: "AIzaSyCgb-GnbwrLeslBvWpizverub1w-IpejPQ",
-  authDomain: "ff-logo-website.firebaseapp.com",
-  projectId: "ff-logo-website",
-  storageBucket: "ff-logo-website.firebasestorage.app",
-  messagingSenderId: "1030394135220",
-  appId: "1:1030394135220:web:ad82df8a8eafd8d4cd4de1",
-  measurementId: "G-EQCZXDFG1Y"
-};
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-  // Firebase Initialize කිරීම
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth();
-  const provider = new GoogleAuthProvider();
+        const firebaseConfig = {
+            apiKey: "AIzaSyCgb-GnbwrLeslBvWpizverub1w-IpejPQ",
+            authDomain: "ff-logo-website.firebaseapp.com",
+            projectId: "ff-logo-website",
+            storageBucket: "ff-logo-website.firebasestorage.app",
+            messagingSenderId: "1030394135220",
+            appId: "1:1030394135220:web:ad82df8a8eafd8d4cd4de1",
+            measurementId: "G-EQCZXDFG1Y"
+        };
 
-  // --- Google Login Function ---
-  window.handleGoogleLogin = async () => {
-    try {
-      const result = await signInWithPopup(auth, provider);
-      alert("Welcome " + result.user.displayName + "!");
-      closeAllModals();
-      // ලොග් වුණාම 'LOG IN' බටන් එක වෙනුවට User ගේ නම පෙන්වන්න පුළුවන්
-      document.querySelector('.bg-white\\/5.border.border-white\\/10').innerText = result.user.displayName.split(' ')[0];
-    } catch (error) {
-      console.error(error);
-      alert("Google Login Error: " + error.message);
-    }
-  };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth();
+        const provider = new GoogleAuthProvider();
 
-  // --- Email Sign Up ---
-  window.handleSignUp = async () => {
-    const email = document.querySelector('#signup-modal input[type="email"]').value;
-    const password = document.querySelector('#signup-modal input[type="password"]').value;
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      alert("Account Created Successfully!");
-      closeAllModals();
-    } catch (error) {
-      alert(error.message);
-    }
-  };
+        // 1. Check Login State (Page Load වෙනකොටම වැඩ කරයි)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log("User logged in:", user.displayName);
+                updateUIForLogin(user);
+            } else {
+                console.log("No user logged in");
+            }
+        });
 
-  // --- Email Login ---
-  window.handleLogin = async () => {
-    const email = document.querySelector('#login-modal input[type="email"]').value;
-    const password = document.querySelector('#login-modal input[type="password"]').value;
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      alert("Logged In Successfully!");
-      closeAllModals();
-    } catch (error) {
-      alert(error.message);
-    }
-  };
-</script>
-</html>
+        // 2. Handle Google Login (Redirect Method for Mobile)
+        window.handleGoogleLogin = async () => {
+            try {
+                // Mobile Phones වල Popup Block වෙන නිසා Redirect දානවා
+                await signInWithRedirect(auth, provider);
+            } catch (error) {
+                console.error("Login Error:", error);
+                alert("Google Login Error: " + error.message);
+            }
+        };
+
+        // 3. UI Update Function (බටන් හංගලා නම පෙන්වීම)
+        function updateUIForLogin(user) {
+            closeAllModals();
+            const userName = user.displayName ? user.displayName.split(' ')[0] : "User";
+            
+            // Header HTML එක හදනවා
+            const profileHTML = `
+                <div class="user-profile-badge">
+                    <span>👋 Hi, ${userName}</span>
+                </div>
+            `;
+
+            // Slim Header එකේ බටන් මාරු කිරීම
+            const slimContainer = document.getElementById('slim-auth-container');
+            if(slimContainer) slimContainer.innerHTML = profileHTML;
+
+            // Main Header එකේ බටන් මාරු කිරීම
+            const mainContainer = document.getElementById('main-auth-container');
+            if(mainContainer) mainContainer.innerHTML = profileHTML;
+        }
+
+        // 4. Email Sign Up
+        window.handleSignUp = async () => {
+            const email = document.querySelector('#signup-modal input[type="email"]').value;
+            const password = document.querySelector('#signup-modal input[type="password"]').value;
+            const name = document.querySelector('#signup-modal input[type="text"]').value;
+            
+            if(!email || !password) { alert("Please fill all fields"); return; }
+            
+            try 
