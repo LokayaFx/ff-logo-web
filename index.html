@@ -60,20 +60,6 @@
         #coming-soon-layer { position: fixed; inset: 0; background: rgba(13, 13, 18, 0.98); backdrop-filter: blur(20px); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         #slim-header { position: fixed; top: -80px; left: 0; width: 100%; z-index: 1000; background: rgba(13, 13, 18, 0.95); backdrop-filter: blur(15px); height: 65px; display: flex; align-items: center; transition: top 0.4s ease; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
         #slim-header.visible { top: 0; }
-        
-        /* User Profile Style */
-        .user-profile-badge {
-            background: rgba(102, 56, 166, 0.2);
-            border: 1px solid rgba(102, 56, 166, 0.5);
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 11px;
-            color: white;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
     </style>
 </head>
 <body>
@@ -89,11 +75,6 @@
                 <div onclick="window.scrollTo(0,0)" class="space-y-1.5 cursor-pointer"><div class="w-5 h-0.5 bg-white/60"></div><div class="w-5 h-0.5 bg-white/60"></div><div class="w-5 h-0.5 bg-white/60"></div></div>
                 <div class="font-bold uppercase text-[10px] tracking-[0.3em] text-white/70">Lokaya gFx</div>
             </div>
-            
-            <div id="slim-auth-container" class="flex items-center gap-2">
-                <button onclick="toggleModal('login-modal', true)" class="bg-purple-600/20 border border-purple-500/30 px-4 py-1.5 rounded-full text-[9px] uppercase">Log in</button>
-                <button onclick="handleGoogleLogin()" class="bg-white/10 border border-white/20 px-4 py-1.5 rounded-full text-[9px] uppercase ml-2">Continue with Google</button>
-            </div>
         </div>
     </div>
 
@@ -103,10 +84,6 @@
                 <div class="flex items-center gap-4">
                     <div onclick="window.scrollTo(0,0)" class="space-y-1.5 cursor-pointer"><div class="w-6 h-0.5 bg-white/80"></div><div class="w-6 h-0.5 bg-white/80"></div><div class="w-6 h-0.5 bg-white/80"></div></div>
                     <div class="text-lg font-bold uppercase tracking-widest text-white/90">Lokaya gFx</div>
-                </div>
-                
-                <div id="main-auth-container">
-                    <button onclick="toggleModal('login-modal', true)" class="bg-white/5 border border-white/10 px-4 py-1.5 rounded-full text-[10px] uppercase">Log in</button>
                 </div>
             </div>
             <nav class="flex justify-center gap-3">
@@ -146,38 +123,6 @@
     </section>
 
     <div id="modal-overlay" class="modal-overlay" onclick="closeAllModals()"></div>
-
-    <div id="login-modal" class="custom-modal fixed bottom-0 left-0 right-0 bg-[#0d0d12] rounded-t-[40px] z-[101] p-8 border-t border-white/5">
-        <div class="w-12 h-1 bg-white/10 rounded-full mx-auto mb-6"></div>
-        <h3 class="text-center font-bold mb-6 text-2xl">Welcome Back</h3>
-        <div class="space-y-4 mb-8">
-            <input type="email" placeholder="Email Address" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
-            <input type="password" placeholder="Password" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
-        </div>
-        <button onclick="handleLogin()" class="w-full py-4 bg-[#6638A6] rounded-2xl font-bold uppercase tracking-widest mb-4">Log In</button>
-        <div class="relative flex items-center justify-center my-4">
-            <div class="flex-grow border-t border-white/10"></div>
-            <span class="flex-shrink mx-4 text-gray-500 text-[10px] uppercase">OR</span>
-            <div class="flex-grow border-t border-white/10"></div>
-        </div>
-        <button onclick="handleGoogleLogin()" class="w-full py-4 bg-white text-black rounded-2xl font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-95 transition-transform">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
-            <span class="text-xs">Continue with Google</span>
-        </button>
-        <p class="text-center text-xs text-white/30">Don't have an account? <span onclick="toggleModal('signup-modal', true)" class="text-purple-500 font-bold cursor-pointer">Sign Up</span></p>
-    </div>
-
-    <div id="signup-modal" class="custom-modal fixed bottom-0 left-0 right-0 bg-[#0d0d12] rounded-t-[40px] z-[101] p-8 border-t border-white/5">
-        <div class="w-12 h-1 bg-white/10 rounded-full mx-auto mb-6"></div>
-        <h3 class="text-center font-bold mb-6 text-2xl">Create Account</h3>
-        <div class="space-y-4 mb-8">
-            <input type="text" placeholder="Full Name" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
-            <input type="email" placeholder="Email Address" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
-            <input type="password" placeholder="Password" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
-        </div>
-        <button onclick="handleSignUp()" class="w-full py-4 bg-[#6638A6] rounded-2xl font-bold uppercase tracking-widest mb-6">Sign Up</button>
-        <p class="text-center text-xs text-white/30">Already have an account? <span onclick="toggleModal('login-modal', true)" class="text-purple-500 font-bold cursor-pointer">Log In</span></p>
-    </div>
 
     <div id="logo-modal" class="custom-modal fixed bottom-0 left-0 right-0 bg-[#121217] rounded-t-[40px] z-[101] p-8 border-t border-white/5">
         <div class="w-12 h-1 bg-white/10 rounded-full mx-auto mb-6"></div>
@@ -243,180 +188,30 @@
         }
 
         window.onscroll = function() {
-            document.getElementById("slim-header").classList.toggle("visible", window.pageYOffset > 300);
+            const header = document.getElementById("slim-header");
+            if(header) header.classList.toggle("visible", window.pageYOffset > 300);
         };
 
         function toggleModal(id, show) {
             if (show) {
-                // Close other modals first
                 document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('modal-active'));
                 const m = document.getElementById(id);
                 const o = document.getElementById('modal-overlay');
-                o.style.display = 'block'; 
-                setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10);
+                if(m && o) {
+                    o.style.display = 'block'; 
+                    setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10);
+                }
             }
         }
 
         function closeAllModals() {
             document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('modal-active'));
             const o = document.getElementById('modal-overlay');
-            o.style.opacity = '0';
-            setTimeout(() => { o.style.display = 'none'; }, 400);
+            if(o) {
+                o.style.opacity = '0';
+                setTimeout(() => { o.style.display = 'none'; }, 400);
+            }
         }
     </script>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { 
-        getAuth, 
-        GoogleAuthProvider, 
-        signInWithRedirect, 
-        getRedirectResult, 
-        createUserWithEmailAndPassword, 
-        signInWithEmailAndPassword, 
-        onAuthStateChanged, 
-        signOut 
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-    // ────────────────────────────────────────────────
-    // ඔයාගේ Firebase Config එක මෙතන තියන්න (මේක නැත්නම් login වැඩ කරන්නේ නෑ)
-    const firebaseConfig = {
-        apiKey: "AIzaSyCgb-GnbwrLeslBvWpizverub1w-IpejPQ",
-        authDomain: "ff-logo-website.firebaseapp.com",
-        projectId: "ff-logo-website",
-        storageBucket: "ff-logo-website.firebasestorage.app",
-        messagingSenderId: "1030394135220",
-        appId: "1:1030394135220:web:ad82df8a8eafd8d4cd4de1",
-        measurementId: "G-EQCZXDFG1Y"
-    };
-    // ────────────────────────────────────────────────
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-
-    // Auth state changes listen කරනවා
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            console.log("Logged in:", user.displayName || user.email, user.uid);
-            updateUIForLoggedIn(user);
-        } else {
-            console.log("Logged out / No user");
-            updateUIForLoggedOut();
-        }
-    });
-
-    // Google login (redirect method)
-    window.handleGoogleLogin = async () => {
-        try {
-            await signInWithRedirect(auth, provider);
-        } catch (error) {
-            console.error("Google login error:", error);
-            alert("Google login එක fail වුණා: " + error.message);
-        }
-    };
-
-    // Redirect එකෙන් ආපහු එනකොට result බලනවා
-    getRedirectResult(auth)
-        .then((result) => {
-            if (result?.user) {
-                updateUIForLoggedIn(result.user);
-            }
-        })
-        .catch((error) => {
-            console.error("Redirect result error:", error);
-        });
-
-    // Logged in UI update
-    function updateUIForLoggedIn(user) {
-        closeAllModals();
-
-        let displayName = user.displayName 
-            ? user.displayName.split(' ')[0] 
-            : (user.email ? user.email.split('@')[0] : "User");
-
-        let photoURL = user.photoURL || `https://ui-avatars.com/api/?name=${displayName}&background=6638A6&color=fff`;
-
-        const badgeHTML = `
-            <div class="user-profile-badge">
-                <img src="${photoURL}" alt="Profile" class="w-6 h-6 rounded-full">
-                <span>Hi, ${displayName}</span>
-                <button onclick="handleLogout()" class="ml-2 text-xs text-purple-300 hover:text-white">(Logout)</button>
-            </div>
-        `;
-
-        // Slim header
-        const slim = document.getElementById('slim-auth-container');
-        if (slim) slim.innerHTML = badgeHTML;
-
-        // Main header
-        const main = document.getElementById('main-auth-container');
-        if (main) main.innerHTML = badgeHTML;
-
-        // Profile page එක update කරන්න (ඔයා profile section එක හදලා තියෙනවා නම්)
-        document.getElementById('profile-name')?.textContent = displayName;
-        document.getElementById('profile-email')?.textContent = user.email || "No email";
-        document.getElementById('profile-pic')?.setAttribute('src', photoURL);
-    }
-
-    // Logged out UI update
-    function updateUIForLoggedOut() {
-        const loginHTML = `
-            <button onclick="toggleModal('login-modal', true)" class="bg-purple-600/20 border border-purple-500/30 px-4 py-1.5 rounded-full text-[9px] uppercase">Log in</button>
-            <button onclick="handleGoogleLogin()" class="bg-white/10 border border-white/20 px-4 py-1.5 rounded-full text-[9px] uppercase ml-2">Continue with Google</button>
-        `;
-        const slim = document.getElementById('slim-auth-container');
-        if (slim) slim.innerHTML = loginHTML;
-
-        const main = document.getElementById('main-auth-container');
-        if (main) main.innerHTML = `<button onclick="toggleModal('login-modal', true)" class="bg-white/5 border border-white/10 px-4 py-1.5 rounded-full text-[10px] uppercase">Log in</button>`;
-    }
-
-    // Logout
-    window.handleLogout = async () => {
-        try {
-            await signOut(auth);
-        } catch (error) {
-            alert("Logout fail වුණා: " + error.message);
-        }
-    };
-
-    // Sign Up (email/password)
-    window.handleSignUp = async () => {
-        const name     = document.querySelector('#signup-modal input[type="text"]')?.value?.trim()     || "";
-        const email    = document.querySelector('#signup-modal input[type="email"]')?.value?.trim()    || "";
-        const password = document.querySelector('#signup-modal input[type="password"]')?.value?.trim() || "";
-
-        if (!name || !email || !password) {
-            alert("සියලු තොරතුරු පුරවන්න");
-            return;
-        }
-
-        try {
-            await createUserWithEmailAndPassword(auth, email, password);
-            // displayName set කරන්න ඕන නම් පසුව updateProfile භාවිතා කරන්න
-        } catch (error) {
-            let msg = "Sign up fail වුණා";
-            if (error.code === 'auth/email-already-in-use') msg = "මේ email එක දැනටමත් තියෙනවා";
-            if (error.code === 'auth/weak-password') msg = "Password එක දිගට ගන්න (6+ characters)";
-            alert(msg);
-        }
-    };
-
-    // Login (email/password) - optional
-    window.handleLogin = async () => {
-        const email    = document.querySelector('#login-modal input[type="email"]')?.value?.trim();
-        const password = document.querySelector('#login-modal input[type="password"]')?.value?.trim();
-
-        if (!email || !password) {
-            alert("Email සහ password දෙන්න");
-            return;
-        }
-
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
-        } catch (error) {
-            alert("Login fail වුණා: " + error.message);
-        }
-    };
-</script>
+</body>
+</html>
