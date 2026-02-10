@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Poppins', sans-serif; background-color: #0d0d12; margin: 0; color: white; overflow-x: hidden; }
+        
+        .bg-premium-dark { background: radial-gradient(circle at top right, #1a1033 0%, #0d0d12 100%); position: relative; }
+        .bg-premium-section { background: #0d0d12; min-height: 100vh; position: relative; }
+
+        .hero-title {
+            display: inline-block;
+            line-height: 1.4; 
+            padding-bottom: 10px; 
+            background: linear-gradient(to bottom, #ffffff 0%, #a1a1a1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .premium-input { 
+            background: rgba(255, 255, 255, 0.03); 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            backdrop-filter: blur(10px); 
+            color: white; 
+            transition: all 0.3s ease;
+        }
+        .premium-input:focus { border-color: #6638A6; background: rgba(102, 56, 166, 0.05); }
+
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            padding: 8px 18px;
+            border-radius: 14px;
+            font-size: 9px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+        .glass-btn.active { background: rgba(102, 56, 166, 0.2); border-color: rgba(102, 56, 166, 0.5); color: white; }
+
+        .logo-display { 
+            background: #000; 
+            border-radius: 45px; 
+            overflow: hidden; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .custom-modal { transform: translateY(100%); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); opacity: 0; pointer-events: none; }
+        .modal-active { transform: translateY(0); opacity: 1; pointer-events: auto; }
+        .modal-overlay { background: rgba(0,0,0,0.8); backdrop-filter: blur(6px); position: fixed; inset: 0; z-index: 100; display: none; }
+        .selected-card { border: 2px solid #6638A6 !important; background: rgba(102, 56, 166, 0.1) !important; }
+
+        .hidden-section { display: none; }
+
+        #coming-soon-layer { position: fixed; inset: 0; background: rgba(13, 13, 18, 0.98); backdrop-filter: blur(20px); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        #slim-header { position: fixed; top: -80px; left: 0; width: 100%; z-index: 1000; background: rgba(13, 13, 18, 0.95); backdrop-filter: blur(15px); height: 65px; display: flex; align-items: center; transition: top 0.4s ease; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        #slim-header.visible { top: 0; }
+    </style>
+</head>
+<body>
+
+    <div id="coming-soon-layer">
+        <h2 class="text-5xl font-bold hero-title mb-4 tracking-tighter">Coming Soon</h2>
+        <button onclick="hideComingSoon()" class="glass-btn active">Go Back</button>
+    </div>
+
+    <div id="slim-header" class="px-6">
+        <div class="flex justify-between items-center w-full max-w-6xl mx-auto">
+            <div class="flex items-center gap-4">
+                <div onclick="window.scrollTo(0,0)" class="space-y-1.5 cursor-pointer"><div class="w-5 h-0.5 bg-white/60"></div><div class="w-5 h-0.5 bg-white/60"></div><div class="w-5 h-0.5 bg-white/60"></div></div>
+                <div class="font-bold uppercase text-[10px] tracking-[0.3em] text-white/70">Lokaya gFx</div>
+            </div>
+            <button onclick="toggleModal('login-modal', true)" class="bg-purple-600/20 border border-purple-500/30 px-4 py-1.5 rounded-full text-[9px] uppercase">Log in</button>
+        </div>
+    </div>
+
+    <section class="bg-premium-dark min-h-screen flex flex-col relative overflow-hidden">
+        <header class="p-6 relative z-10">
+            <div class="flex justify-between items-center mb-8">
+                <div class="flex items-center gap-4">
+                    <div onclick="window.scrollTo(0,0)" class="space-y-1.5 cursor-pointer"><div class="w-6 h-0.5 bg-white/80"></div><div class="w-6 h-0.5 bg-white/80"></div><div class="w-6 h-0.5 bg-white/80"></div></div>
+                    <div class="text-lg font-bold uppercase tracking-widest text-white/90">Lokaya gFx</div>
+                </div>
+                <button onclick="toggleModal('login-modal', true)" class="bg-white/5 border border-white/10 px-4 py-1.5 rounded-full text-[10px] uppercase">Log in</button>
+            </div>
+            <nav class="flex justify-center gap-3">
+                <button class="glass-btn active">Logos</button>
+                <button onclick="showComingSoon()" class="glass-btn">Posts</button>
+                <button onclick="showComingSoon()" class="glass-btn">Thumbnails</button>
+            </nav>
+        </header>
+
+        <main class="flex-grow flex flex-col items-center justify-center px-4 text-center z-10">
+            <h1 class="hero-title text-6xl md:text-8xl font-bold tracking-tighter">Gaming Logos</h1>
+            <p class="text-white/30 text-sm mb-10 tracking-widest">Create your own gaming logo in seconds</p>
+            <div class="w-full max-w-sm space-y-4">
+                <input id="home-name" type="text" placeholder="Enter Your Logo Name" 
+                       class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none text-center"
+                       onkeydown="if(event.key==='Enter') revealEditor()">
+                <button onclick="revealEditor()" class="block w-full py-4 rounded-2xl bg-[#6638A6] text-white font-bold tracking-widest shadow-2xl transition-all active:scale-95">CREATE LOGO</button>
+            </div>
+        </main>
+    </section>
+
+    <section id="editor-section" class="hidden-section bg-premium-section flex flex-col items-center pt-10 pb-20 px-6">
+        <div class="relative w-full max-w-[320px] aspect-square logo-display mb-8">
+            <button onclick="toggleModal('logo-modal', true)" class="absolute top-6 left-6 z-20 bg-[#6638A6] p-3 rounded-2xl shadow-lg hover:bg-[#7c4dbc] transition-colors">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+            </button>
+            <img id="main-logo" src="https://drive.google.com/uc?export=view&id=1ClhcSJLIhmy9klYaUci_T-MeTHVTbp1l" class="w-full h-full object-cover">
+        </div>
+
+        <div class="w-full max-w-md space-y-3 relative z-10">
+            <h2 class="text-xl font-bold text-center mb-6 text-white/90">Customize Your Logo</h2>
+            <input id="target-name" type="text" placeholder="Enter your name" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
+            <input type="text" placeholder="Your Whatsapp number" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
+            <input type="text" placeholder="Under name TITLE" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
+            <button class="w-full py-5 mt-4 rounded-2xl bg-[#6638A6] text-white font-bold tracking-widest uppercase shadow-2xl active:scale-95 transition-transform">Download Logo</button>
+        </div>
+    </section>
+
+    <div id="modal-overlay" class="modal-overlay" onclick="closeAllModals()"></div>
+
+    <div id="login-modal" class="custom-modal fixed bottom-0 left-0 right-0 bg-[#0d0d12] rounded-t-[40px] z-[101] p-8 border-t border-white/5">
+        <div class="w-12 h-1 bg-white/10 rounded-full mx-auto mb-6"></div>
+        <h3 class="text-center font-bold mb-6 text-2xl">Welcome Back</h3>
+        <div class="space-y-4 mb-8">
+            <input type="email" placeholder="Email Address" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
+            <input type="password" placeholder="Password" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
+        </div>
+        <button class="w-full py-4 bg-[#6638A6] rounded-2xl font-bold uppercase tracking-widest mb-4">Log In</button>
+        <p class="text-center text-xs text-white/30">Don't have an account? <span onclick="toggleModal('signup-modal', true)" class="text-purple-500 font-bold cursor-pointer">Sign Up</span></p>
+    </div>
+
+    <div id="signup-modal" class="custom-modal fixed bottom-0 left-0 right-0 bg-[#0d0d12] rounded-t-[40px] z-[101] p-8 border-t border-white/5">
+        <div class="w-12 h-1 bg-white/10 rounded-full mx-auto mb-6"></div>
+        <h3 class="text-center font-bold mb-6 text-2xl">Create Account</h3>
+        <div class="space-y-4 mb-8">
+            <input type="text" placeholder="Full Name" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
+            <input type="email" placeholder="Email Address" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
+            <input type="password" placeholder="Password" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
+        </div>
+        <button class="w-full py-4 bg-[#6638A6] rounded-2xl font-bold uppercase tracking-widest mb-6">Sign Up</button>
+        <p class="text-center text-xs text-white/30">Already have an account? <span onclick="toggleModal('login-modal', true)" class="text-purple-500 font-bold cursor-pointer">Log In</span></p>
+    </div>
+
+    <div id="logo-modal" class="custom-modal fixed bottom-0 left-0 right-0 bg-[#121217] rounded-t-[40px] z-[101] p-8 border-t border-white/5">
+        <div class="w-12 h-1 bg-white/10 rounded-full mx-auto mb-6"></div>
+        <h3 class="text-center font-bold mb-6 uppercase text-white/60 tracking-widest text-sm">Select Your Logo Style</h3>
+        
+        <div class="grid grid-cols-3 gap-3 mb-8">
+            <div onclick="updateCurrentLogo(1)" class="aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-transform"><img src="https://via.placeholder.com/150?text=Style1" class="w-full h-full object-cover"></div>
+            <div onclick="updateCurrentLogo(2)" class="aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-transform"><img src="https://via.placeholder.com/150?text=Style2" class="w-full h-full object-cover"></div>
+            <div onclick="updateCurrentLogo(3)" class="aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-transform"><img src="https://via.placeholder.com/150?text=Style3" class="w-full h-full object-cover"></div>
+        </div>
+
+        <div class="space-y-3">
+            <button onclick="closeAllModals()" class="w-full py-4 bg-[#6638A6] rounded-2xl font-bold uppercase text-xs tracking-widest shadow-lg">Done</button>
+            <button onclick="toggleModal('char-modal', true)" class="w-full py-4 bg-white/5 border border-white/10 rounded-2xl font-bold uppercase text-xs tracking-widest">Change Character</button>
+            <button onclick="closeAllModals()" class="w-full py-4 text-white/30 font-bold uppercase text-xs tracking-widest">Cancel</button>
+        </div>
+    </div>
+
+    <div id="char-modal" class="custom-modal fixed bottom-0 left-0 right-0 bg-[#0d0d12] rounded-t-[40px] z-[110] p-8 border-t border-purple-500/20">
+        <div class="w-12 h-1 bg-purple-500/20 rounded-full mx-auto mb-6"></div>
+        <h3 id="char-title" class="text-center font-bold mb-6 text-purple-400 uppercase tracking-widest text-sm">Select Character</h3>
+        <div id="char-grid" class="grid grid-cols-3 gap-3 max-h-[40vh] overflow-y-auto mb-8 p-1">
+            </div>
+        <div class="space-y-3">
+            <button onclick="closeAllModals()" class="w-full py-5 bg-[#6638A6] rounded-2xl font-bold uppercase text-xs tracking-widest shadow-xl">Done</button>
+            <button onclick="toggleModal('logo-modal', true)" class="w-full py-4 text-white/30 font-bold uppercase text-xs tracking-widest">Back</button>
+        </div>
+    </div>
+
+    <script>
+        let currentLogoStyle = 1;
+
+        function updateCurrentLogo(styleId) {
+            currentLogoStyle = styleId;
+            renderCharacters();
+        }
+
+        function renderCharacters() {
+            const grid = document.getElementById('char-grid');
+            grid.innerHTML = "";
+            for(let i=1; i<=9; i++) {
+                grid.innerHTML += `
+                    <div onclick="selectFinal(this, ${i})" class="char-item aspect-square bg-white/5 rounded-2xl border border-white/5 overflow-hidden cursor-pointer active:scale-95 transition-all">
+                        <img src="https://via.placeholder.com/150?text=Logo${currentLogoStyle}_Char${i}" class="w-full h-full object-cover">
+                    </div>
+                `;
+            }
+        }
+
+        function selectFinal(el, charId) {
+            document.querySelectorAll('.char-item').forEach(d => d.classList.remove('selected-card'));
+            el.classList.add('selected-card');
+            document.getElementById('main-logo').src = `https://via.placeholder.com/500?text=Logo${currentLogoStyle}_Char${charId}`;
+        }
+
+        function showComingSoon() { document.getElementById('coming-soon-layer').style.display = 'flex'; }
+        function hideComingSoon() { document.getElementById('coming-soon-layer').style.display = 'none'; }
+        
+        function revealEditor() {
+            const name = document.getElementById("home-name").value;
+            if(!name) return;
+            document.getElementById("editor-section").classList.remove("hidden-section");
+            document.getElementById("target-name").value = name;
+            renderCharacters();
+            setTimeout(() => { document.getElementById("editor-section").scrollIntoView({ behavior: 'smooth' }); }, 100);
+        }
+
+        window.onscroll = function() {
+            document.getElementById("slim-header").classList.toggle("visible", window.pageYOffset > 300);
+        };
+
+        function toggleModal(id, show) {
+            closeAllModals();
+            const m = document.getElementById(id);
+            const o = document.getElementById('modal-overlay');
+            if(show) { o.style.display = 'block'; setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10); }
+        }
+
+        function closeAllModals() {
+            document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('modal-active'));
+            const o = document.getElementById('modal-overlay');
+            o.style.opacity = '0'; setTimeout(() => o.style.display = 'none', 400);
+        }
+    </script>
+</body>
+</html>
