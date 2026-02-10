@@ -242,10 +242,21 @@
             if(show) { o.style.display = 'block'; setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10); }
         }
 
-        function closeAllModals() {
-            document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('modal-active'));
-            const o = document.getElementById('modal-overlay');
-            o.style.opacity = '0'; setTimeout(() => o.style.display = 'none', 400);
+        // ලොග් වුණාම බටන් අයින් කරලා නම පෙන්වීම
+const loginBtn = document.querySelector('button[onclick*="login-modal"]');
+const googleBtn = document.querySelector('button[onclick*="handleGoogleLogin"]');
+
+if (loginBtn) loginBtn.style.display = 'none';
+if (googleBtn) googleBtn.style.display = 'none';
+
+// නම පෙන්වන්න අලුත් Element එකක් හැදීම
+const nav = document.querySelector('nav') || document.body; 
+const userDisplay = document.createElement('span');
+userDisplay.innerText = "Hi, " + result.user.displayName;
+userDisplay.style.color = "white";
+userDisplay.style.marginLeft = "10px";
+nav.appendChild(userDisplay);
+
         }
     </script>
 </body>
