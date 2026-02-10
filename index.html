@@ -241,25 +241,68 @@
             renderCharacters();
             setTimeout(() => { document.getElementById("editor-section").scrollIntoView({ behavior: 'smooth' }); }, 100);
         }
+            <script>
+        let currentLogoStyle = 1;
+
+        function updateCurrentLogo(styleId) {
+            currentLogoStyle = styleId;
+            renderCharacters();
+        }
+
+        function renderCharacters() {
+            const grid = document.getElementById('char-grid');
+            if(!grid) return;
+            grid.innerHTML = "";
+            for(let i=1; i<=9; i++) {
+                grid.innerHTML += `
+                    <div onclick="selectFinal(this, ${i})" class="char-item aspect-square bg-white/5 rounded-2xl border border-white/5 overflow-hidden cursor-pointer active:scale-95 transition-all">
+                        <img src="https://via.placeholder.com/150?text=Logo${currentLogoStyle}_Char${i}" class="w-full h-full object-cover">
+                    </div>
+                `;
+            }
+        }
+
+        function selectFinal(el, charId) {
+            document.querySelectorAll('.char-item').forEach(d => d.classList.remove('selected-card'));
+            el.classList.add('selected-card');
+            document.getElementById('main-logo').src = `https://via.placeholder.com/500?text=Logo${currentLogoStyle}_Char${charId}`;
+        }
+
+        function showComingSoon() { document.getElementById('coming-soon-layer').style.display = 'flex'; }
+        function hideComingSoon() { document.getElementById('coming-soon-layer').style.display = 'none'; }
+        
+        function revealEditor() {
+            const name = document.getElementById("home-name").value;
+            if(!name) return;
+            document.getElementById("editor-section").classList.remove("hidden-section");
+            document.getElementById("target-name").value = name;
+            renderCharacters();
+            setTimeout(() => { document.getElementById("editor-section").scrollIntoView({ behavior: 'smooth' }); }, 100);
+        }
 
         window.onscroll = function() {
-            document.getElementById("slim-header").classList.toggle("visible", window.pageYOffset > 300);
+            const slimHeader = document.getElementById("slim-header");
+            if(slimHeader) {
+                slimHeader.classList.toggle("visible", window.pageYOffset > 300);
+            }
         };
 
         function toggleModal(id, show) {
             if (show) {
-                // Close other modals first
                 document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('modal-active'));
                 const m = document.getElementById(id);
                 const o = document.getElementById('modal-overlay');
-                o.style.display = 'block'; 
-                setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10);
+                if(m && o) {
+                    o.style.display = 'block'; 
+                    setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10);
+                }
+            }
         }
-            <script>
+
         function closeAllModals() {
             document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('modal-active'));
             const o = document.getElementById('modal-overlay');
-            if (o) {
+            if(o) {
                 o.style.opacity = '0';
                 setTimeout(() => { o.style.display = 'none'; }, 400);
             }
@@ -268,7 +311,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithRedirect, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCgb-GnbwrLeslBvWpizverub1w-IpejPQ",
@@ -284,47 +327,78 @@
         const auth = getAuth();
         const provider = new GoogleAuthProvider();
 
-        // 1. User ලොග් වෙලාද කියලා බලනවා
+        // 1. Check Login State
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                const userName = user.displayName ? user.displayName.split(' ')[0] : "User";
-                
-                // LOG IN බටන් එකේ නම වෙනස් කිරීම
-                const btn = document.querySelector('button[onclick*="login-modal"]');
-                if(btn) btn.innerText = "Hi, " + userName;
-                
-                // Google Login බටන් එක හංගනවා
-                const gBtn = document.querySelector('button[onclick*="handleGoogleLogin"]');
-                if(gBtn) gBtn.style.display = 'none';
+                console.log("User logged in:", user.displayName);
+                updateUIForLogin(user);
+            } else {
+                console.log("No user logged in");
             }
         });
 
-        // 2. Google Login Function
+        // 2. Handle Google Login
         window.handleGoogleLogin = async () => {
             try {
                 await signInWithRedirect(auth, provider);
             } catch (error) {
-                alert("Login Error: " + error.message);
+                console.error("Login Error:", error);
+                alert("Google Login Error: " + error.message);
             }
         };
 
-        // 3. Email Sign Up Function
-        window.handleSignUp = async () => {
-            const email = document.querySelector('#signup-modal input[type="email"]').value;
-            const password = document.querySelector('#signup-modal input[type="password"]').value;
+        // 3. UI Update Function
+        function updateUIForLogin(user) {
+            closeAllModals();
+            const userName = user.displayName ? user.displayName.split(' ')[0] : "User";
             
-            if(!email || !password) {
-                alert("Please fill all fields");
-                return;
-            }
+            const profileHTML = `
+                <div class="user-profile-badge">
+                    <span>👋 Hi, ${userName}</span>
+                </div>
+            `;
 
+            const slimContainer = document.getElementById('slim-auth-container');
+            if(slimContainer) slimContainer.innerHTML = profileHTML;
+
+            const mainContainer = document.getElementById('main-auth-container');
+            if(mainContainer) mainContainer.innerHTML = profileHTML;
+        }
+
+        // 4. Email Sign Up (මම මේක සම්පූර්ණ කළා)
+        window.handleSignUp = async () => {
+            const emailInput = document.querySelector('#signup-modal input[type="email"]');
+            const passwordInput = document.querySelector('#signup-modal input[type="password"]');
+            const nameInput = document.querySelector('#signup-modal input[type="text"]');
+            
+            if(!emailInput.value || !passwordInput.value) { 
+                alert("Please fill all fields"); 
+                return; 
+            }
+            
             try {
-                await createUserWithEmailAndPassword(auth, email, password);
+                const userCredential = await createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
+                if(nameInput.value) {
+                    await updateProfile(userCredential.user, { displayName: nameInput.value });
+                }
                 alert("Account Created Successfully!");
                 closeAllModals();
             } catch (error) {
-                alert("Sign Up Error: " + error.message);
+                alert("Error: " + error.message);
+            }
+        };
+
+        // 5. Email Login (අමතරව අවශ්‍ය වෙයි කියලා හැදුවා)
+        window.handleLogin = async () => {
+            const email = document.querySelector('#login-modal input[type="email"]').value;
+            const password = document.querySelector('#login-modal input[type="password"]').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                closeAllModals();
+            } catch (error) {
+                alert("Login Error: " + error.message);
             }
         };
     </script>
-    
+</body>
+</html>
