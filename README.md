@@ -1,4 +1,4 @@
-# # 🎮 Lokaya gFx - Premium Gaming Logo Maker
+# # 🎮 Lokaya gfx - Premium Gaming Logo Maker
 
 Lokaya gFx is a sleek, high-performance web application that allows users to create custom gaming logos in seconds. It features a modern dark-themed interface with dynamic character selection based on different logo styles.
 
@@ -43,8 +43,6 @@ Lokaya gFx is a sleek, high-performance web application that allows users to cre
 ## 👨‍💻 Author
 
 * **Your Name**
-    * GitHub: [@your-username](https://github.com/your-username)
-    * Website: [yourportfolio.com](https://yourportfolio.com)
-
+    * GitHub: [@LokayaFx](https://github.com/Lokayafx)
 ---
 ⭐️ If you found this project helpful, please give it a Star!
