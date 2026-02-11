@@ -125,46 +125,35 @@ window.selectFinal = function(el, charId) {
 };
 
 // 4. PHOTOPEA හරහා ලෝගෝ එක හැදීම (ප්‍රධාන කොටස)
-window.generateFinalLogo = function() {
-    const userName = document.getElementById('target-name').value || "LOKAYA GFX";
-    
-    // යුසර් තෝරාගත් Style එක සහ Character එකට අදාළ PSD එකේ Link එක
-    // සටහන: ඔයාගේ GitHub Username එක සහ Repo නම මෙතන හරියටම තියෙන්න ඕනේ
-    const psdUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s${window.currentLogoStyle}_c${window.selectedCharacterId}.psd`;
+// editor.js ඇතුළේ script කෑල්ල මෙහෙම මාරු කරන්න
+const userName = document.getElementById('target-name').value || "LOKAYA GFX";
+const userNumber = document.querySelectorAll('input[placeholder="Your Whatsapp number"]')[0].value || "";
+const userTitle = document.querySelectorAll('input[placeholder="Under name TITLE"]')[0].value || "";
 
-    // Photopea එකට යවන නියෝග
-    const photopeaConfig = {
-        "files": [psdUrl],
-        "script": `
-            var doc = app.activeDocument;
-            var layer = doc.artLayers.getByName("LogoName"); // PSD එකේ Layer එකේ නම "LogoName" විය යුතුයි
-            layer.textItem.contents = "${userName.toUpperCase()}";
-            app.activeDocument.saveToOE("png");
-        `,
-        "serverMode": true
-    };
+const photopeaConfig = {
+    "files": [psdUrl],
+    "script": `
+        var doc = app.activeDocument;
+        
+        // ප්‍රධාන නම මාරු කිරීම
+        var nameLayer = doc.artLayers.getByName("LogoName");
+        nameLayer.textItem.contents = "${userName.toUpperCase()}";
+        
+        // WhatsApp අංකය මාරු කිරීම
+        try {
+            var numLayer = doc.artLayers.getByName("LogoNumber");
+            numLayer.textItem.contents = "${userNumber}";
+        } catch(e) {}
 
-    // පේන්නේ නැති iframe එකක් හදනවා
-    const iframe = document.createElement("iframe");
-    iframe.style.display = "none";
-    iframe.src = "https://www.photopea.com#" + encodeURI(JSON.stringify(photopeaConfig));
-    document.body.appendChild(iframe);
+        // Title එක මාරු කිරීම
+        try {
+            var titleLayer = doc.artLayers.getByName("LogoTitle");
+            titleLayer.textItem.contents = "${userTitle.toUpperCase()}";
+        } catch(e) {}
 
-    // Photopea එකෙන් පින්තූරය එවනකම් බලාගෙන ඉන්නවා
-    window.addEventListener("message", function receiveMessage(e) {
-        if (e.source == iframe.contentWindow) {
-            const blob = new Blob([e.data], {type: "image/png"});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `LokayaGFX_${userName}.png`;
-            a.click();
-            
-            // අවසානයේ iframe එක අයින් කරනවා
-            document.body.removeChild(iframe);
-            window.removeEventListener("message", receiveMessage);
-        }
-    });
+        app.activeDocument.saveToOE("png");
+    `,
+    "serverMode": true
 };
 
 // --- අනිත් UI Functions (Modal, Scroll etc.) ---
