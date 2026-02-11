@@ -202,3 +202,80 @@ window.onscroll = function() {
     const header = document.getElementById("slim-header");
     if(header) header.classList.toggle("visible", window.pageYOffset > 300);
 };
+window.generateFinalLogo = function() {
+    const userName = document.getElementById('target-name').value || "LOKAYA GFX";
+    const renderScreen = document.getElementById('render-screen');
+    const renderBar = document.getElementById('render-bar');
+    const renderStatus = document.getElementById('render-status');
+    const renderPerc = document.getElementById('render-perc');
+    const renderPreview = document.getElementById('render-preview');
+
+    // 1. Rendering Screen එක පෙන්වීම
+    renderScreen.classList.remove('hidden');
+    renderScreen.classList.add('flex');
+    renderPreview.src = document.getElementById('main-logo').src;
+
+    // Fake Progress Animation (යුසර්ට පේන්න)
+    let progress = 0;
+    const messages = [
+        "Connecting to Photopea API...",
+        "Loading PSD Template...",
+        "Applying Photoshop Styles...",
+        "Injecting Text Layers...",
+        "Finalizing Export..."
+    ];
+
+    const progressInterval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress > 95) progress = 95;
+        
+        renderBar.style.width = progress + "%";
+        renderPerc.innerText = Math.floor(progress) + "%";
+        renderStatus.innerText = messages[Math.floor(progress / 20)] || "Exporting...";
+    }, 400);
+
+    // 2. Photopea Logic එක
+    const psdUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s${window.currentLogoStyle}_c${window.selectedCharacterId}.psd`;
+
+    const photopeaConfig = {
+        "files": [psdUrl],
+        "script": `
+            var doc = app.activeDocument;
+            var layer = doc.artLayers.getByName("LogoName");
+            layer.textItem.contents = "${userName.toUpperCase()}";
+            app.activeDocument.saveToOE("png");
+        `,
+        "serverMode": true
+    };
+
+    const iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    iframe.src = "https://www.photopea.com#" + encodeURI(JSON.stringify(photopeaConfig));
+    document.body.appendChild(iframe);
+
+    window.addEventListener("message", function receiveMessage(e) {
+        if (e.source == iframe.contentWindow) {
+            // 3. වැඩේ ඉවරයි - Progress 100% කරනවා
+            clearInterval(progressInterval);
+            renderBar.style.width = "100%";
+            renderPerc.innerText = "100%";
+            renderStatus.innerText = "Download Complete!";
+
+            const blob = new Blob([e.data], {type: "image/png"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `LokayaGFX_${userName}.png`;
+            a.click();
+            
+            // තත්පරයකට පස්සේ Screen එක හංගනවා
+            setTimeout(() => {
+                renderScreen.classList.add('hidden');
+                renderScreen.classList.remove('flex');
+                document.body.removeChild(iframe);
+            }, 1000);
+
+            window.removeEventListener("message", receiveMessage);
+        }
+    });
+};
