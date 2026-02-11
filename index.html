@@ -6,7 +6,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet"> 
     <link rel="stylesheet" href="css/style.css">
-</head>
+    </head>
 <body>
 
     <div id="coming-soon-layer">
@@ -17,9 +17,14 @@
     <div id="slim-header" class="px-6">
         <div class="flex justify-between items-center w-full max-w-6xl mx-auto">
             <div class="flex items-center gap-4">
-                <div onclick="window.scrollTo(0,0)" class="space-y-1.5 cursor-pointer"><div class="w-5 h-0.5 bg-white/60"></div><div class="w-5 h-0.5 bg-white/60"></div><div class="w-5 h-0.5 bg-white/60"></div></div>
+                <div onclick="window.scrollTo(0,0)" class="space-y-1.5 cursor-pointer">
+                    <div class="w-5 h-0.5 bg-white/60"></div>
+                    <div class="w-5 h-0.5 bg-white/60"></div>
+                    <div class="w-5 h-0.5 bg-white/60"></div>
+                </div>
                 <div class="font-bold uppercase text-[10px] tracking-[0.3em] text-white/70">Lokaya gFx</div>
             </div>
+            <div id="slim-auth-container"></div>
         </div>
     </div>
 
@@ -27,9 +32,14 @@
         <header class="p-6 relative z-10">
             <div class="flex justify-between items-center mb-8">
                 <div class="flex items-center gap-4">
-                    <div onclick="window.scrollTo(0,0)" class="space-y-1.5 cursor-pointer"><div class="w-6 h-0.5 bg-white/80"></div><div class="w-6 h-0.5 bg-white/80"></div><div class="w-6 h-0.5 bg-white/80"></div></div>
+                    <div onclick="window.scrollTo(0,0)" class="space-y-1.5 cursor-pointer">
+                        <div class="w-6 h-0.5 bg-white/80"></div>
+                        <div class="w-6 h-0.5 bg-white/80"></div>
+                        <div class="w-6 h-0.5 bg-white/80"></div>
+                    </div>
                     <div class="text-lg font-bold uppercase tracking-widest text-white/90">Lokaya gFx</div>
                 </div>
+                <div id="main-auth-container"></div>
             </div>
             <nav class="flex justify-center gap-3">
                 <button class="glass-btn active">Logos</button>
@@ -55,7 +65,7 @@
             <button onclick="toggleModal('logo-modal', true)" class="absolute top-6 left-6 z-20 bg-[#6638A6] p-3 rounded-2xl shadow-lg hover:bg-[#7c4dbc] transition-colors">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
             </button>
-            <img id="main-logo" src="https://drive.google.com/uc?export=view&id=1ClhcSJLIhmy9klYaUci_T-MeTHVTbp1l" class="w-full h-full object-cover">
+            <img id="main-logo" src="assets/logos/s1_c1.jpg" class="w-full h-full object-cover">
         </div>
 
         <div class="w-full max-w-md space-y-3 relative z-10">
@@ -73,9 +83,9 @@
         <div class="w-12 h-1 bg-white/10 rounded-full mx-auto mb-6"></div>
         <h3 class="text-center font-bold mb-6 uppercase text-white/60 tracking-widest text-sm">Select Your Logo Style</h3>
         <div class="grid grid-cols-3 gap-3 mb-8">
-            <div onclick="updateCurrentLogo(1)" class="aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-transform"><img src="https://via.placeholder.com/150?text=Style1" class="w-full h-full object-cover"></div>
-            <div onclick="updateCurrentLogo(2)" class="aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-transform"><img src="https://via.placeholder.com/150?text=Style2" class="w-full h-full object-cover"></div>
-            <div onclick="updateCurrentLogo(3)" class="aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-transform"><img src="https://via.placeholder.com/150?text=Style3" class="w-full h-full object-cover"></div>
+            <div onclick="updateCurrentLogo(1)" class="aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-transform"><img src="assets/logos/s1_c1.jpg" class="w-full h-full object-cover"></div>
+            <div onclick="updateCurrentLogo(2)" class="aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-transform"><img src="assets/logos/s2_c1.jpg" class="w-full h-full object-cover"></div>
+            <div onclick="updateCurrentLogo(3)" class="aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-transform"><img src="assets/logos/s3_c1.jpg" class="w-full h-full object-cover"></div>
         </div>
         <div class="space-y-3">
             <button onclick="closeAllModals()" class="w-full py-4 bg-[#6638A6] rounded-2xl font-bold uppercase text-xs tracking-widest shadow-lg">Done</button>
@@ -95,7 +105,7 @@
     </div>
 
     <script src="js/editor.js"></script>
-    <script type="module" src="js/auth.js"></
-script>
+    <script type="module" src="js/auth.js"></script>
 </body>
-</html>
+        </html>
+    
