@@ -1,25 +1,15 @@
-
 // දැනට තෝරාගෙන තියෙන Style සහ Character තබා ගන්නා Variables
 window.currentLogoStyle = 1;
 window.selectedCharacterId = 1; 
 
 // 1. Style එක මාරු කිරීම (Modal එක close වෙන්නේ නැති වෙන්න හැදුවා)
 window.updateCurrentLogo = function(styleId) {
-    // Style එක Update කිරීම
     window.currentLogoStyle = styleId;
-    
-    // Main preview එක මාරු කිරීම
     const mainImg = document.getElementById('main-logo');
     if(mainImg) {
         mainImg.src = `./assets/logos/s${styleId}_c${window.selectedCharacterId}.png`;
     }
-
-    // මෙතන තිබුණ closeAllModals පේළිය අයින් කළා
-
-    // Characters Grid එක නැවත Render කිරීම
     window.renderCharacters();
-
-    // Editor එක පෙන්නනවා
     const editorSection = document.getElementById("editor-section");
     if(editorSection) {
         editorSection.classList.remove("hidden-section");
@@ -31,7 +21,6 @@ window.renderCharacters = function() {
     const grid = document.getElementById('char-grid');
     if(!grid) return;
     grid.innerHTML = "";
-    
     for(let i=1; i<=9; i++) {
         grid.innerHTML += `
             <div onclick="selectFinal(this, ${i})" class="char-item aspect-square bg-white/5 rounded-2xl border border-white/5 overflow-hidden cursor-pointer active:scale-95 transition-all">
@@ -48,27 +37,22 @@ window.selectFinal = function(el, charId) {
     window.selectedCharacterId = charId;
     document.querySelectorAll('.char-item').forEach(d => d.classList.remove('selected-card'));
     el.classList.add('selected-card');
-    
     const mainImg = document.getElementById('main-logo');
     if(mainImg) {
         mainImg.src = `./assets/logos/s${window.currentLogoStyle}_c${charId}.png`;
     }
-
-    // Character එකක් තෝරපුවාම Modal එක වැහෙනවා
     window.closeAllModals();
-
-    // Editor එකට Scroll වෙනවා
     const editorSection = document.getElementById("editor-section");
     if(editorSection) {
         editorSection.scrollIntoView({ behavior: 'smooth' });
     }
 };
 
-// 4. PHOTOPEA හරහා ලෝගෝ එක හැදීම
+// 4. PHOTOPEA හරහා ලෝගෝ එක හැදීම (Fixed Title and Font)
 window.generateFinalLogo = function() {
     const userName = document.getElementById('target-name').value || "LOKAYA GFX";
     const userNumber = document.getElementById('target-number')?.value || "";
-    const userTitle = document.getElementById('target-title')?.value || "";
+    const userTitle = document.getElementById('target-title')?.value || ""; // මේක තමයි Title එක
 
     const renderScreen = document.getElementById('render-screen');
     const renderBar = document.getElementById('render-bar');
@@ -83,43 +67,44 @@ window.generateFinalLogo = function() {
     }
 
     let progress = 0;
-    const messages = ["Connecting...", "Loading Font...", "Injecting Layers...", "Applying Muro Style...", "Exporting PNG..."];
     const progressInterval = setInterval(() => {
         progress += Math.random() * 8;
         if (progress > 98) progress = 98;
         if(renderBar) renderBar.style.width = progress + "%";
         if(renderPerc) renderPerc.innerText = Math.floor(progress) + "%";
-        if(renderStatus) renderStatus.innerText = messages[Math.floor(progress / 20)] || "Processing...";
     }, 300);
 
     const psdUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s${window.currentLogoStyle}_c${window.selectedCharacterId}.psd`;
     const fontUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/Muro.otf`;
 
-            const photopeaConfig = {
+    const photopeaConfig = {
         "files": [psdUrl],
         "script": `
-            // 1. Font එක Load කරනවා
             app.loadFont("${fontUrl}");
+            
+            // ලේයර්ස් ටික හොයාගෙන ටෙක්ස්ට් එක දාන එක
+            function runExport() {
+                if (app.documents.length > 0) {
+                    var doc = app.activeDocument;
+                    function setText(layerName, txt) {
+                        try {
+                            var l = doc.artLayers.getByName(layerName);
+                            l.textItem.contents = txt;
+                            l.textItem.font = "Muro-Regular"; 
+                        } catch(e) { console.log("Missing: " + layerName); }
+                    }
 
-            // setTimeout පාවිච්චි කරන්නේ නැතුව කෙලින්ම Run කරමු
-            if (app.documents.length > 0) {
-                var doc = app.activeDocument;
-                
-                function setText(layerName, txt) {
-                    try {
-                        var l = doc.artLayers.getByName(layerName);
-                        l.textItem.contents = txt;
-                        // Font එකේ නම හරියටම පාවිච්චි කරන්න
-                        l.textItem.font = "Muro-Regular"; 
-                    } catch(e) { console.log("Missing: " + layerName); }
+                    // ඔයාගේ PSD එකේ ලේයර් වල නම් මේවට සමාන වෙන්න ඕනේ:
+                    setText("LogoName", "${userName.toUpperCase()}");
+                    setText("LogoNumber", "${userNumber}");
+                    setText("LogoTitle", "${userTitle.toUpperCase()}"); // මෙතන තමයි වැරදිලා තිබුණේ
+
+                    app.activeDocument.saveToOE("png");
                 }
-
-                setText("LogoName", "${userName.toUpperCase()}");
-                setText("LogoNumber", "${userNumber}");
-                setText("LogoTitle", "${userTitle.toUpperCase()}");
-
-                app.activeDocument.saveToOE("png");
             }
+            
+            // පොඩි විනාඩියක් ඉමු ලෝඩ් වෙනකම්
+            setTimeout(runExport, 2000);
         `,
         "serverMode": true
     };
@@ -166,12 +151,10 @@ window.revealEditor = function() {
 window.toggleModal = function(id, show) {
     const m = document.getElementById(id);
     const o = document.getElementById('modal-overlay');
-    if (show) {
+    if (show && m && o) {
         document.querySelectorAll('.custom-modal').forEach(mod => mod.classList.remove('modal-active'));
-        if(m && o) {
-            o.style.display = 'block'; 
-            setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10);
-        }
+        o.style.display = 'block'; 
+        setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10);
     } else {
         window.closeAllModals();
     }
