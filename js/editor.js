@@ -5,7 +5,6 @@ window.selectedCharacterId = 1;
 // 1. Style එක මාරු කිරීම
 window.updateCurrentLogo = function(styleId) {
     window.currentLogoStyle = styleId;
-    // Main preview එකත් මාරු කරනවා Style එක තේරූ සැනින්
     const mainImg = document.getElementById('main-logo');
     if(mainImg) {
         mainImg.src = `./assets/logos/s${styleId}_c1.png`;
@@ -61,7 +60,7 @@ window.generateFinalLogo = function() {
     }
 
     let progress = 0;
-    const messages = ["Connecting...", "Loading PSD...", "Applying Styles...", "Injecting Layers...", "Exporting..."];
+    const messages = ["Connecting...", "Loading Font...", "Injecting Layers...", "Applying Muro Style...", "Exporting PNG..."];
     const progressInterval = setInterval(() => {
         progress += Math.random() * 8;
         if (progress > 98) progress = 98;
@@ -70,26 +69,34 @@ window.generateFinalLogo = function() {
         if(renderStatus) renderStatus.innerText = messages[Math.floor(progress / 20)] || "Processing...";
     }, 300);
 
-    // ලින්ක් එකේ raw.githubusercontent.com හරියටම තියෙනවා
     const psdUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s${window.currentLogoStyle}_c${window.selectedCharacterId}.psd`;
+    const fontUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/Muro.otf`;
 
     const photopeaConfig = {
         "files": [psdUrl],
         "script": `
+            // 1. මුලින්ම Font එක ලෝඩ් කරනවා
+            app.loadFont("${fontUrl}");
+
             var doc = app.activeDocument;
             
-            function setText(layerName, txt) {
+            function setText(layerName, txt, applyFont) {
                 try {
                     var l = doc.artLayers.getByName(layerName);
                     l.textItem.contents = txt;
+                    if(applyFont) {
+                        l.textItem.font = "Muro"; // Font එකේ නම අතින් දෙනවා
+                    }
                 } catch(e) { console.log("Missing: " + layerName); }
             }
 
-            setText("LogoName", "${userName.toUpperCase()}");
-            setText("LogoNumber", "${userNumber}");
-            setText("LogoTitle", "${userTitle.toUpperCase()}");
-
-            app.activeDocument.saveToOE("png");
+            // Font එක ලෝඩ් වෙන්න තත්පරයක් විතර ඉමු
+            setTimeout(function() {
+                setText("LogoName", "${userName.toUpperCase()}", true);
+                setText("LogoNumber", "${userNumber}", true);
+                setText("LogoTitle", "${userTitle.toUpperCase()}", true);
+                app.activeDocument.saveToOE("png");
+            }, 1000);
         `,
         "serverMode": true
     };
@@ -99,7 +106,6 @@ window.generateFinalLogo = function() {
     iframe.src = "https://www.photopea.com#" + encodeURI(JSON.stringify(photopeaConfig));
     document.body.appendChild(iframe);
 
-    // Response එක අල්ලන අලුත් ක්‍රමය (Security safe)
     const messageHandler = function(e) {
         if (e.data instanceof ArrayBuffer) {
             clearInterval(progressInterval);
@@ -164,3 +170,4 @@ window.onscroll = function() {
     const header = document.getElementById("slim-header");
     if(header) header.classList.toggle("visible", window.pageYOffset > 300);
 };
+    
