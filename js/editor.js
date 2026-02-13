@@ -31,7 +31,7 @@ window.selectFinal = function(el, charId) {
     
     const mainImg = document.getElementById('main-logo');
     if(mainImg) {
-        mainImg.src = `assets/logos/s${window.currentLogoStyle}_c${charId}.jpg`;
+        mainImg.src = `assets/logos/s${window.currentLogoStyle}_c${charId}.png`;
     }
 };
 
