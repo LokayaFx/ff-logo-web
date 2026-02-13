@@ -2,14 +2,29 @@
 window.currentLogoStyle = 1;
 window.selectedCharacterId = 1; 
 
-// 1. Style එක මාරු කිරීම
+// 1. Style එක මාරු කිරීම සහ Modal එක Close කිරීම
 window.updateCurrentLogo = function(styleId) {
+    // Style එක Update කිරීම
     window.currentLogoStyle = styleId;
+    
+    // Main preview එක මාරු කිරීම
     const mainImg = document.getElementById('main-logo');
     if(mainImg) {
-        mainImg.src = `./assets/logos/s${styleId}_c1.png`;
+        mainImg.src = `./assets/logos/s${styleId}_c${window.selectedCharacterId}.png`;
     }
+
+    // Modal එක Close කිරීම
+    window.closeAllModals();
+
+    // Characters Grid එක නැවත Render කිරීම
     window.renderCharacters();
+
+    // Editor එක පේන්නේ නැත්නම් ඒක පෙන්නලා ඒ පැත්තට Scroll කිරීම
+    const editorSection = document.getElementById("editor-section");
+    if(editorSection) {
+        editorSection.classList.remove("hidden-section");
+        editorSection.scrollIntoView({ behavior: 'smooth' });
+    }
 };
 
 // 2. ග්‍රිඩ් එකේ Characters පෙන්වීම
