@@ -17,7 +17,7 @@ window.renderCharacters = function() {
     for(let i=1; i<=9; i++) {
         grid.innerHTML += `
             <div onclick="selectFinal(this, ${i})" class="char-item aspect-square bg-white/5 rounded-2xl border border-white/5 overflow-hidden cursor-pointer active:scale-95 transition-all">
-                <img src="assets/logos/s${window.currentLogoStyle}_c${i}.jpg" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150?text=Logo'">
+                <img src="assets/logos/s${window.currentLogoStyle}_c${i}.png" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150?text=Logo'">
             </div>
         `;
     }
