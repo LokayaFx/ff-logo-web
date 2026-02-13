@@ -95,29 +95,42 @@ window.generateFinalLogo = function() {
     const psdUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s${window.currentLogoStyle}_c${window.selectedCharacterId}.psd`;
     const fontUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/Muro.otf`;
 
-    const photopeaConfig = {
+        const photopeaConfig = {
         "files": [psdUrl],
         "script": `
+            // 1. Font එක Load කරනවා
             app.loadFont("${fontUrl}");
-            var doc = app.activeDocument;
-            function setText(layerName, txt, applyFont) {
-                try {
-                    var l = doc.artLayers.getByName(layerName);
-                    l.textItem.contents = txt;
-                    if(applyFont) {
-                        l.textItem.font = "Muro";
-                    }
-                } catch(e) { console.log("Missing: " + layerName); }
-            }
+
+            // 2. තත්පර 3ක් ඉන්නවා PSD එකයි Font එකයි දෙකම ලෝඩ් වෙනකම්
             setTimeout(function() {
-                setText("LogoName", "${userName.toUpperCase()}", true);
-                setText("LogoNumber", "${userNumber}", true);
-                setText("LogoTitle", "${userTitle.toUpperCase()}", true);
-                app.activeDocument.saveToOE("png");
-            }, 1000);
+                if (app.documents.length > 0) {
+                    var doc = app.activeDocument;
+                    
+                    function setText(layerName, txt, applyFont) {
+                        try {
+                            var l = doc.artLayers.getByName(layerName);
+                            l.textItem.contents = txt;
+                            if(applyFont) {
+                                l.textItem.font = "Muro"; 
+                            }
+                        } catch(e) { console.log("Missing layer: " + layerName); }
+                    }
+
+                    // අකුරු මාරු කරනවා
+                    setText("LogoName", "${userName.toUpperCase()}", true);
+                    setText("LogoNumber", "${userNumber}", true);
+                    setText("LogoTitle", "${userTitle.toUpperCase()}", true);
+
+                    // PNG එකක් විදිහට Save කරනවා
+                    app.activeDocument.saveToOE("png");
+                } else {
+                    console.log("No document found in Photopea!");
+                }
+            }, 3000); // 3000ms = තත්පර 3ක්
         `,
         "serverMode": true
     };
+
 
     const iframe = document.createElement("iframe");
     iframe.style.display = "none";
