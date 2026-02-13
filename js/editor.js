@@ -2,7 +2,7 @@
 window.currentLogoStyle = 1;
 window.selectedCharacterId = 1; 
 
-// 1. Style එක මාරු කිරීම සහ Modal එක Close කිරීම
+// 1. Style එක මාරු කිරීම (මෙතනදී Modal එක වැහෙන්නේ නැත)
 window.updateCurrentLogo = function(styleId) {
     // Style එක Update කිරීම
     window.currentLogoStyle = styleId;
@@ -13,17 +13,13 @@ window.updateCurrentLogo = function(styleId) {
         mainImg.src = `./assets/logos/s${styleId}_c${window.selectedCharacterId}.png`;
     }
 
-    // Modal එක Close කිරීම
-    window.closeAllModals();
-
-    // Characters Grid එක නැවත Render කිරීම
+    // Characters Grid එක නැවත Render කිරීම (අලුත් Style එකට අනුව)
     window.renderCharacters();
 
-    // Editor එක පේන්නේ නැත්නම් ඒක පෙන්නලා ඒ පැත්තට Scroll කිරීම
+    // Editor එක පේන්නේ නැත්නම් ඒක පෙන්නනවා (හැබැයි Scroll කරන්නේ නැහැ Modal එක ඇතුළේ ඉන්න නිසා)
     const editorSection = document.getElementById("editor-section");
     if(editorSection) {
         editorSection.classList.remove("hidden-section");
-        editorSection.scrollIntoView({ behavior: 'smooth' });
     }
 };
 
@@ -44,7 +40,7 @@ window.renderCharacters = function() {
     }
 };
 
-// 3. අවසාන Character එක තෝරාගැනීම සහ Modal එක Close කිරීම
+// 3. අවසාන Character එක තෝරාගැනීම සහ Modal එක CLOSE කිරීම
 window.selectFinal = function(el, charId) {
     window.selectedCharacterId = charId;
     document.querySelectorAll('.char-item').forEach(d => d.classList.remove('selected-card'));
@@ -55,8 +51,14 @@ window.selectFinal = function(el, charId) {
         mainImg.src = `./assets/logos/s${window.currentLogoStyle}_c${charId}.png`;
     }
 
-    // ඔන්න මෙතනදී තමයි Character එකක් තෝරපුවාම Modal එක වැහෙන්න දැම්මේ
+    // මචං මෙතනදී තමයි Modal එක Close වෙන්න දැම්මේ
     window.closeAllModals();
+
+    // Modal එක වැහුණාම Editor එක තියෙන තැනට Screen එක Scroll කරනවා
+    const editorSection = document.getElementById("editor-section");
+    if(editorSection) {
+        editorSection.scrollIntoView({ behavior: 'smooth' });
+    }
 };
 
 // 4. PHOTOPEA හරහා ලෝගෝ එක හැදීම
@@ -93,22 +95,17 @@ window.generateFinalLogo = function() {
     const photopeaConfig = {
         "files": [psdUrl],
         "script": `
-            // 1. මුලින්ම Font එක ලෝඩ් කරනවා
             app.loadFont("${fontUrl}");
-
             var doc = app.activeDocument;
-            
             function setText(layerName, txt, applyFont) {
                 try {
                     var l = doc.artLayers.getByName(layerName);
                     l.textItem.contents = txt;
                     if(applyFont) {
-                        l.textItem.font = "Muro"; // Font එකේ නම අතින් දෙනවා
+                        l.textItem.font = "Muro";
                     }
                 } catch(e) { console.log("Missing: " + layerName); }
             }
-
-            // Font එක ලෝඩ් වෙන්න තත්පරයක් විතර ඉමු
             setTimeout(function() {
                 setText("LogoName", "${userName.toUpperCase()}", true);
                 setText("LogoNumber", "${userNumber}", true);
@@ -130,7 +127,6 @@ window.generateFinalLogo = function() {
             if(renderBar) renderBar.style.width = "100%";
             if(renderPerc) renderPerc.innerText = "100%";
             if(renderStatus) renderStatus.innerText = "Done!";
-
             const blob = new Blob([e.data], {type: "image/png"});
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
@@ -139,7 +135,6 @@ window.generateFinalLogo = function() {
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            
             setTimeout(() => {
                 if(renderScreen) renderScreen.classList.add('hidden');
                 document.body.removeChild(iframe);
@@ -147,7 +142,6 @@ window.generateFinalLogo = function() {
             window.removeEventListener("message", messageHandler);
         }
     };
-
     window.addEventListener("message", messageHandler);
 };
 
