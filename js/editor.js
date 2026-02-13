@@ -9,11 +9,8 @@ window.updateCurrentLogo = function(styleId) {
     if(mainImg) {
         mainImg.src = `./assets/logos/s${styleId}_c${window.selectedCharacterId}.png`;
     }
+    // Style එක මාරු කළාම grid එකත් අලුත් වෙන්න ඕනේ
     window.renderCharacters();
-    const editorSection = document.getElementById("editor-section");
-    if(editorSection) {
-        editorSection.classList.remove("hidden-section");
-    }
 };
 
 // 3. Characters Grid එක පෙන්වීම
@@ -39,6 +36,7 @@ window.selectFinal = function(el, charId) {
         mainImg.src = `./assets/logos/s${window.currentLogoStyle}_c${charId}.png`;
     }
     window.closeAllModals();
+    // Character එක තෝරපුවාම Editor එකට Scroll වෙනවා
     const editorSection = document.getElementById("editor-section");
     if(editorSection) {
         editorSection.scrollIntoView({ behavior: 'smooth' });
@@ -49,7 +47,7 @@ window.selectFinal = function(el, charId) {
 window.generateFinalLogo = function() {
     const userName = document.getElementById('target-name').value || "LOKAYA GFX";
     const userNumber = document.getElementById('target-number')?.value || "";
-    const userTitle = document.getElementById('target-title')?.value || "";
+    const userTitle = document.getElementById('target-title').value || ""; // Title එක ගන්නවා
 
     const renderScreen = document.getElementById('render-screen');
     const renderBar = document.getElementById('render-bar');
@@ -77,37 +75,23 @@ window.generateFinalLogo = function() {
     const photopeaConfig = {
         "files": [psdUrl, muroFontUrl], 
         "script": `
-            // 1. Muro Font එක load කරනවා (Bebas Neue Photopea එකේ default තියෙනවා)
             app.loadFont("${muroFontUrl}");
-
             function runExport() {
                 if (app.documents.length > 0) {
                     var doc = app.activeDocument;
-                    
                     function setLayer(name, val, fontName) {
                         try {
                             var l = doc.artLayers.getByName(name);
                             l.textItem.contents = val;
-                            if(fontName) {
-                                l.textItem.font = fontName;
-                            }
+                            if(fontName) { l.textItem.font = fontName; }
                         } catch(e) { console.log("Missing Layer: " + name); }
                     }
-
-                    // Logo Name එකට MURO font එක දානවා
                     setLayer("LogoName", "${userName.toUpperCase()}", "Muro-Regular");
-
-                    // Number එකට BEBAS NEUE font එක දානවා
                     setLayer("LogoNumber", "${userNumber}", "BebasNeue-Regular");
-
-                    // Title එක (යටින් එන එක) - PSD එකේ ලේයර් එක "LogoTitle" විය යුතුයි
                     setLayer("LogoTitle", "${userTitle.toUpperCase()}", "Muro-Regular");
-
                     app.activeDocument.saveToOE("png");
                 }
             }
-            
-            // විනාඩියක් ඉමු PSD එක Load වෙනකම්
             setTimeout(runExport, 2000);
         `,
         "serverMode": true
@@ -128,7 +112,7 @@ window.generateFinalLogo = function() {
             const url = URL.createObjectURL(new Blob([e.data], {type: "image/png"}));
             const a = document.createElement("a");
             a.href = url;
-            a.download = \`LokayaGFX_\${userName}.png\`;
+            a.download = \`Logo_\${userName}.png\`;
             a.click();
             
             setTimeout(() => {
@@ -140,13 +124,18 @@ window.generateFinalLogo = function() {
     });
 };
 
-// --- UI Functions ---
+// --- අතුරුදහන් වුණු UI Functions ඔක්කොම මෙන්න ---
+
 window.revealEditor = function() {
-    const name = document.getElementById("home-name").value;
+    const nameInput = document.getElementById("home-name");
+    const name = nameInput ? nameInput.value : "";
     if(!name) { alert("Please enter a name!"); return; }
+    
     document.getElementById("editor-section").classList.remove("hidden-section");
     document.getElementById("target-name").value = name;
     window.renderCharacters();
+    
+    // Create Logo එබුවම පහළට Smooth Scroll වෙනවා
     setTimeout(() => { 
         document.getElementById("editor-section").scrollIntoView({ behavior: 'smooth' }); 
     }, 100);
@@ -155,10 +144,12 @@ window.revealEditor = function() {
 window.toggleModal = function(id, show) {
     const m = document.getElementById(id);
     const o = document.getElementById('modal-overlay');
-    if (show && m && o) {
+    if (show) {
         document.querySelectorAll('.custom-modal').forEach(mod => mod.classList.remove('modal-active'));
-        o.style.display = 'block'; 
-        setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10);
+        if(m && o) {
+            o.style.display = 'block'; 
+            setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10);
+        }
     } else {
         window.closeAllModals();
     }
@@ -167,13 +158,31 @@ window.toggleModal = function(id, show) {
 window.closeAllModals = function() {
     document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('modal-active'));
     const o = document.getElementById('modal-overlay');
-    if(o) { o.style.opacity = '0'; setTimeout(() => { o.style.display = 'none'; }, 400); }
+    if(o) { 
+        o.style.opacity = '0'; 
+        setTimeout(() => { o.style.display = 'none'; }, 400); 
+    }
 };
 
+// Coming Soon buttons සඳහා
+window.showComingSoon = function() { 
+    const layer = document.getElementById('coming-soon-layer');
+    if(layer) layer.style.display = 'flex'; 
+};
+
+window.hideComingSoon = function() { 
+    const layer = document.getElementById('coming-soon-layer');
+    if(layer) layer.style.display = 'none'; 
+};
+
+// උඩින් එන Bar එක (Slim Header) Scroll කරද්දී පෙන්වීමට
 window.onscroll = function() {
     const header = document.getElementById("slim-header");
     if(header) {
-        if (window.pageYOffset > 300) header.classList.add("visible");
-        else header.classList.remove("visible");
+        if (window.pageYOffset > 300) {
+            header.classList.add("visible");
+        } else {
+            header.classList.remove("visible");
+        }
     }
 };
