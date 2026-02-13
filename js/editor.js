@@ -2,9 +2,14 @@
 window.currentLogoStyle = 1;
 window.selectedCharacterId = 1; 
 
-// 1. Style එක මාරු කිරීම (Style 1, 2, 3)
+// 1. Style එක මාරු කිරීම
 window.updateCurrentLogo = function(styleId) {
     window.currentLogoStyle = styleId;
+    // Main preview එකත් මාරු කරනවා Style එක තේරූ සැනින්
+    const mainImg = document.getElementById('main-logo');
+    if(mainImg) {
+        mainImg.src = `./assets/logos/s${styleId}_c1.png`;
+    }
     window.renderCharacters();
 };
 
@@ -17,7 +22,9 @@ window.renderCharacters = function() {
     for(let i=1; i<=9; i++) {
         grid.innerHTML += `
             <div onclick="selectFinal(this, ${i})" class="char-item aspect-square bg-white/5 rounded-2xl border border-white/5 overflow-hidden cursor-pointer active:scale-95 transition-all">
-                <img src="assets/logos/s${window.currentLogoStyle}_c${i}.png" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150?text=Logo'">
+                <img src="./assets/logos/s${window.currentLogoStyle}_c${i}.png" 
+                     class="w-full h-full object-cover" 
+                     onerror="this.src='https://via.placeholder.com/150?text=Error'">
             </div>
         `;
     }
@@ -31,17 +38,15 @@ window.selectFinal = function(el, charId) {
     
     const mainImg = document.getElementById('main-logo');
     if(mainImg) {
-        mainImg.src = `assets/logos/s${window.currentLogoStyle}_c${charId}.png`;
+        mainImg.src = `./assets/logos/s${window.currentLogoStyle}_c${charId}.png`;
     }
 };
 
 // 4. PHOTOPEA හරහා ලෝගෝ එක හැදීම
 window.generateFinalLogo = function() {
-    // Inputs වලින් අගයන් ලබා ගැනීම
     const userName = document.getElementById('target-name').value || "LOKAYA GFX";
-    // Placeholder එක හරහා හරියටම input එක අල්ලනවා
-    const userNumber = document.querySelector('input[placeholder="Your Whatsapp number"]').value || "";
-    const userTitle = document.querySelector('input[placeholder="Under name TITLE"]').value || "";
+    const userNumber = document.getElementById('target-number')?.value || "";
+    const userTitle = document.getElementById('target-title')?.value || "";
 
     const renderScreen = document.getElementById('render-screen');
     const renderBar = document.getElementById('render-bar');
@@ -49,48 +54,40 @@ window.generateFinalLogo = function() {
     const renderPerc = document.getElementById('render-perc');
     const renderPreview = document.getElementById('render-preview');
 
-    // Rendering Screen පෙන්වීම
     if(renderScreen) {
         renderScreen.classList.remove('hidden');
         renderScreen.classList.add('flex');
         renderPreview.src = document.getElementById('main-logo').src;
     }
 
-    // Fake Progress Animation
     let progress = 0;
     const messages = ["Connecting...", "Loading PSD...", "Applying Styles...", "Injecting Layers...", "Exporting..."];
     const progressInterval = setInterval(() => {
-        progress += Math.random() * 12;
-        if (progress > 95) progress = 95;
+        progress += Math.random() * 8;
+        if (progress > 98) progress = 98;
         if(renderBar) renderBar.style.width = progress + "%";
         if(renderPerc) renderPerc.innerText = Math.floor(progress) + "%";
         if(renderStatus) renderStatus.innerText = messages[Math.floor(progress / 20)] || "Processing...";
-    }, 400);
+    }, 300);
 
-    // PSD URL එක (මතක ඇතුව ලින්ක් එකේ ඔයාගේ username එක චෙක් කරන්න)
+    // ලින්ක් එකේ raw.githubusercontent.com හරියටම තියෙනවා
     const psdUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s${window.currentLogoStyle}_c${window.selectedCharacterId}.psd`;
 
-    // Photopea Script එක (මෙහි තමයි LogoName, LogoNumber, LogoTitle තුනම මාරු කරන්නේ)
     const photopeaConfig = {
         "files": [psdUrl],
         "script": `
             var doc = app.activeDocument;
             
-            // Name මාරු කිරීම
-            var nameLayer = doc.artLayers.getByName("LogoName");
-            nameLayer.textItem.contents = "${userName.toUpperCase()}";
-            
-            // Number මාරු කිරීම
-            try {
-                var numLayer = doc.artLayers.getByName("LogoNumber");
-                numLayer.textItem.contents = "${userNumber}";
-            } catch(e) {}
+            function setText(layerName, txt) {
+                try {
+                    var l = doc.artLayers.getByName(layerName);
+                    l.textItem.contents = txt;
+                } catch(e) { console.log("Missing: " + layerName); }
+            }
 
-            // Title මාරු කිරීම
-            try {
-                var titleLayer = doc.artLayers.getByName("LogoTitle");
-                titleLayer.textItem.contents = "${userTitle.toUpperCase()}";
-            } catch(e) {}
+            setText("LogoName", "${userName.toUpperCase()}");
+            setText("LogoNumber", "${userNumber}");
+            setText("LogoTitle", "${userTitle.toUpperCase()}");
 
             app.activeDocument.saveToOE("png");
         `,
@@ -102,8 +99,9 @@ window.generateFinalLogo = function() {
     iframe.src = "https://www.photopea.com#" + encodeURI(JSON.stringify(photopeaConfig));
     document.body.appendChild(iframe);
 
-    window.addEventListener("message", function receiveMessage(e) {
-        if (e.source == iframe.contentWindow) {
+    // Response එක අල්ලන අලුත් ක්‍රමය (Security safe)
+    const messageHandler = function(e) {
+        if (e.data instanceof ArrayBuffer) {
             clearInterval(progressInterval);
             if(renderBar) renderBar.style.width = "100%";
             if(renderPerc) renderPerc.innerText = "100%";
@@ -113,19 +111,20 @@ window.generateFinalLogo = function() {
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = `LokayaGFX_${userName}.png`;
+            a.download = `LokayaGFX_${userName.replace(/\\s+/g, '_')}.png`;
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
             
             setTimeout(() => {
-                if(renderScreen) {
-                    renderScreen.classList.add('hidden');
-                    renderScreen.classList.remove('flex');
-                }
+                if(renderScreen) renderScreen.classList.add('hidden');
                 document.body.removeChild(iframe);
             }, 1000);
-            window.removeEventListener("message", receiveMessage);
+            window.removeEventListener("message", messageHandler);
         }
-    });
+    };
+
+    window.addEventListener("message", messageHandler);
 };
 
 // --- UI Functions ---
@@ -139,14 +138,16 @@ window.revealEditor = function() {
 };
 
 window.toggleModal = function(id, show) {
+    const m = document.getElementById(id);
+    const o = document.getElementById('modal-overlay');
     if (show) {
-        document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('modal-active'));
-        const m = document.getElementById(id);
-        const o = document.getElementById('modal-overlay');
+        document.querySelectorAll('.custom-modal').forEach(mod => mod.classList.remove('modal-active'));
         if(m && o) {
             o.style.display = 'block'; 
             setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10);
         }
+    } else {
+        window.closeAllModals();
     }
 };
 
@@ -163,4 +164,3 @@ window.onscroll = function() {
     const header = document.getElementById("slim-header");
     if(header) header.classList.toggle("visible", window.pageYOffset > 300);
 };
-    
