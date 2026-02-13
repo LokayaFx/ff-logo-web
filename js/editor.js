@@ -1,8 +1,9 @@
+
 // දැනට තෝරාගෙන තියෙන Style සහ Character තබා ගන්නා Variables
 window.currentLogoStyle = 1;
 window.selectedCharacterId = 1; 
 
-// 1. Style එක මාරු කිරීම (මෙතනදී Modal එක වැහෙන්නේ නැත)
+// 1. Style එක මාරු කිරීම (Modal එක close වෙන්නේ නැති වෙන්න හැදුවා)
 window.updateCurrentLogo = function(styleId) {
     // Style එක Update කිරීම
     window.currentLogoStyle = styleId;
@@ -13,10 +14,12 @@ window.updateCurrentLogo = function(styleId) {
         mainImg.src = `./assets/logos/s${styleId}_c${window.selectedCharacterId}.png`;
     }
 
-    // Characters Grid එක නැවත Render කිරීම (අලුත් Style එකට අනුව)
+    // මෙතන තිබුණ closeAllModals පේළිය අයින් කළා
+
+    // Characters Grid එක නැවත Render කිරීම
     window.renderCharacters();
 
-    // Editor එක පේන්නේ නැත්නම් ඒක පෙන්නනවා (හැබැයි Scroll කරන්නේ නැහැ Modal එක ඇතුළේ ඉන්න නිසා)
+    // Editor එක පෙන්නනවා
     const editorSection = document.getElementById("editor-section");
     if(editorSection) {
         editorSection.classList.remove("hidden-section");
@@ -40,7 +43,7 @@ window.renderCharacters = function() {
     }
 };
 
-// 3. අවසාන Character එක තෝරාගැනීම සහ Modal එක CLOSE කිරීම
+// 3. අවසාන Character එක තෝරාගැනීම සහ Modal එක Close කිරීම
 window.selectFinal = function(el, charId) {
     window.selectedCharacterId = charId;
     document.querySelectorAll('.char-item').forEach(d => d.classList.remove('selected-card'));
@@ -51,10 +54,10 @@ window.selectFinal = function(el, charId) {
         mainImg.src = `./assets/logos/s${window.currentLogoStyle}_c${charId}.png`;
     }
 
-    // මචං මෙතනදී තමයි Modal එක Close වෙන්න දැම්මේ
+    // Character එකක් තෝරපුවාම Modal එක වැහෙනවා
     window.closeAllModals();
 
-    // Modal එක වැහුණාම Editor එක තියෙන තැනට Screen එක Scroll කරනවා
+    // Editor එකට Scroll වෙනවා
     const editorSection = document.getElementById("editor-section");
     if(editorSection) {
         editorSection.scrollIntoView({ behavior: 'smooth' });
