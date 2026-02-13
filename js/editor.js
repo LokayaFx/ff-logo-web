@@ -44,7 +44,7 @@ window.renderCharacters = function() {
     }
 };
 
-// 3. අවසාන Character එක තෝරාගැනීම
+// 3. අවසාන Character එක තෝරාගැනීම සහ Modal එක Close කිරීම
 window.selectFinal = function(el, charId) {
     window.selectedCharacterId = charId;
     document.querySelectorAll('.char-item').forEach(d => d.classList.remove('selected-card'));
@@ -54,6 +54,9 @@ window.selectFinal = function(el, charId) {
     if(mainImg) {
         mainImg.src = `./assets/logos/s${window.currentLogoStyle}_c${charId}.png`;
     }
+
+    // ඔන්න මෙතනදී තමයි Character එකක් තෝරපුවාම Modal එක වැහෙන්න දැම්මේ
+    window.closeAllModals();
 };
 
 // 4. PHOTOPEA හරහා ලෝගෝ එක හැදීම
@@ -185,4 +188,3 @@ window.onscroll = function() {
     const header = document.getElementById("slim-header");
     if(header) header.classList.toggle("visible", window.pageYOffset > 300);
 };
-    
