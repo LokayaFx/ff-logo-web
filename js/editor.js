@@ -1,4 +1,4 @@
-// 1. මුලින්ම variables ලෑස්ති කරගමු
+// 1. variables ලෑස්ති කරගමු
 window.currentLogoStyle = 1;
 window.selectedCharacterId = 1; 
 
@@ -45,7 +45,7 @@ window.selectFinal = function(el, charId) {
     }
 };
 
-// 5. PHOTOPEA හරහා ලෝගෝ එක හැදීම (98% Fix එකත් එක්ක)
+// 5. PHOTOPEA හරහා ලෝගෝ එක හැදීම (Dual Font & Title Fix)
 window.generateFinalLogo = function() {
     const userName = document.getElementById('target-name').value || "LOKAYA GFX";
     const userNumber = document.getElementById('target-number')?.value || "";
@@ -72,23 +72,43 @@ window.generateFinalLogo = function() {
     }, 300);
 
     const psdUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s${window.currentLogoStyle}_c${window.selectedCharacterId}.psd`;
-    const fontUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/Muro.otf`;
+    const muroFontUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/Muro.otf`;
 
     const photopeaConfig = {
-        "files": [psdUrl, fontUrl], // Font එක මෙතනදීම දෙන නිසා load වෙන්න වෙලාව ගන්නේ නැහැ
+        "files": [psdUrl, muroFontUrl], 
         "script": `
-            var doc = app.activeDocument;
-            function setText(name, val) {
-                try {
-                    var l = doc.artLayers.getByName(name);
-                    l.textItem.contents = val;
-                    l.textItem.font = "Muro-Regular"; 
-                } catch(e) {}
+            // 1. Muro Font එක load කරනවා (Bebas Neue Photopea එකේ default තියෙනවා)
+            app.loadFont("${muroFontUrl}");
+
+            function runExport() {
+                if (app.documents.length > 0) {
+                    var doc = app.activeDocument;
+                    
+                    function setLayer(name, val, fontName) {
+                        try {
+                            var l = doc.artLayers.getByName(name);
+                            l.textItem.contents = val;
+                            if(fontName) {
+                                l.textItem.font = fontName;
+                            }
+                        } catch(e) { console.log("Missing Layer: " + name); }
+                    }
+
+                    // Logo Name එකට MURO font එක දානවා
+                    setLayer("LogoName", "${userName.toUpperCase()}", "Muro-Regular");
+
+                    // Number එකට BEBAS NEUE font එක දානවා
+                    setLayer("LogoNumber", "${userNumber}", "BebasNeue-Regular");
+
+                    // Title එක (යටින් එන එක) - PSD එකේ ලේයර් එක "LogoTitle" විය යුතුයි
+                    setLayer("LogoTitle", "${userTitle.toUpperCase()}", "Muro-Regular");
+
+                    app.activeDocument.saveToOE("png");
+                }
             }
-            setText("LogoName", "${userName.toUpperCase()}");
-            setText("LogoNumber", "${userNumber}");
-            setText("LogoTitle", "${userTitle.toUpperCase()}");
-            app.activeDocument.saveToOE("png");
+            
+            // විනාඩියක් ඉමු PSD එක Load වෙනකම්
+            setTimeout(runExport, 2000);
         `,
         "serverMode": true
     };
@@ -120,8 +140,7 @@ window.generateFinalLogo = function() {
     });
 };
 
-// --- අතුරුදහන් වුණු UI Functions ඔක්කොම මෙතන තියෙනවා ---
-
+// --- UI Functions ---
 window.revealEditor = function() {
     const name = document.getElementById("home-name").value;
     if(!name) { alert("Please enter a name!"); return; }
@@ -136,12 +155,10 @@ window.revealEditor = function() {
 window.toggleModal = function(id, show) {
     const m = document.getElementById(id);
     const o = document.getElementById('modal-overlay');
-    if (show) {
+    if (show && m && o) {
         document.querySelectorAll('.custom-modal').forEach(mod => mod.classList.remove('modal-active'));
-        if(m && o) {
-            o.style.display = 'block'; 
-            setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10);
-        }
+        o.style.display = 'block'; 
+        setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10);
     } else {
         window.closeAllModals();
     }
@@ -150,31 +167,13 @@ window.toggleModal = function(id, show) {
 window.closeAllModals = function() {
     document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('modal-active'));
     const o = document.getElementById('modal-overlay');
-    if(o) { 
-        o.style.opacity = '0'; 
-        setTimeout(() => { o.style.display = 'none'; }, 400); 
-    }
+    if(o) { o.style.opacity = '0'; setTimeout(() => { o.style.display = 'none'; }, 400); }
 };
 
-window.showComingSoon = function() { 
-    const layer = document.getElementById('coming-soon-layer');
-    if(layer) layer.style.display = 'flex'; 
-};
-
-window.hideComingSoon = function() { 
-    const layer = document.getElementById('coming-soon-layer');
-    if(layer) layer.style.display = 'none'; 
-};
-
-// උඩින් එන Bar එක පේන්න ඕන වෙලාව (Scroll detection)
 window.onscroll = function() {
     const header = document.getElementById("slim-header");
     if(header) {
-        if (window.pageYOffset > 300) {
-            header.classList.add("visible");
-        } else {
-            header.classList.remove("visible");
-        }
+        if (window.pageYOffset > 300) header.classList.add("visible");
+        else header.classList.remove("visible");
     }
 };
-        
