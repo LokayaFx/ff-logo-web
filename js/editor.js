@@ -318,34 +318,57 @@ function executePhotopeaScript(logoName, logoNumber, logoTitle) {
     console.log('📄 PSD URL:', psdUrl);
     console.log('🔤 Font URL:', fontUrl);
     
-    updateRenderStatus('Loading custom font...');
+    updateRenderStatus('Loading PSD and font...');
     
-    // Split into multiple commands for better reliability
-    setTimeout(() => {
+    // Method: Send commands sequentially with callbacks
+    let commandQueue = [
         // Command 1: Open PSD
-        photopeaWindow.postMessage('app.open("' + psdUrl + '");', '*');
-        console.log('📤 Sent: Open PSD');
+        {
+            script: `app.open("${psdUrl}");`,
+            delay: 2000,
+            status: 'PSD loaded...'
+        },
+        // Command 2: Load Font
+        {
+            script: `app.loadFont("${fontUrl}");`,
+            delay: 2000,
+            status: 'Font loaded...'
+        },
+        // Command 3: Update and Export
+        {
+            script: `
+                var d = app.activeDocument;
+                try { d.artLayers.getByName("LogoName").textItem.contents = "${logoName.replace(/"/g, '\\"')}"; } catch(e) {}
+                try { d.artLayers.getByName("LogoNumber").textItem.contents = "${logoNumber.replace(/"/g, '\\"')}"; } catch(e) {}
+                try { d.artLayers.getByName("LogoTitel").textItem.contents = "${logoTitle.replace(/"/g, '\\"')}"; } catch(e) {}
+                d.saveToOE("png");
+            `,
+            delay: 0,
+            status: 'Exporting PNG...'
+        }
+    ];
+    
+    function executeNextCommand(index) {
+        if (index >= commandQueue.length) {
+            console.log('✅ All commands executed');
+            return;
+        }
         
-        setTimeout(() => {
-            // Command 2: Load Font
-            photopeaWindow.postMessage('app.loadFont("' + fontUrl + '");', '*');
-            console.log('📤 Sent: Load Font');
-            updateRenderStatus('Processing your logo...');
-            
+        const cmd = commandQueue[index];
+        console.log(`📤 Executing command ${index + 1}/${commandQueue.length}`);
+        updateRenderStatus(cmd.status);
+        
+        photopeaWindow.postMessage(cmd.script, '*');
+        
+        if (cmd.delay > 0) {
             setTimeout(() => {
-                // Command 3: Update layers and export
-                const updateScript = 
-                    'var doc = app.activeDocument;' +
-                    'try { doc.artLayers.getByName("LogoName").textItem.contents = "' + logoName.replace(/"/g, '\\"') + '"; } catch(e) {}' +
-                    'try { doc.artLayers.getByName("LogoNumber").textItem.contents = "' + logoNumber.replace(/"/g, '\\"') + '"; } catch(e) {}' +
-                    'try { doc.artLayers.getByName("LogoTitel").textItem.contents = "' + logoTitle.replace(/"/g, '\\"') + '"; } catch(e) {}' +
-                    'app.activeDocument.saveToOE("png");';
-                
-                photopeaWindow.postMessage(updateScript, '*');
-                console.log('📤 Sent: Update layers and export');
-            }, 2000);
-        }, 2000);
-    }, 500);
+                executeNextCommand(index + 1);
+            }, cmd.delay);
+        }
+    }
+    
+    // Start executing commands
+    executeNextCommand(0);
 }
 
 function handlePhotopeaMessage(event) {
