@@ -1,18 +1,14 @@
-// 1. variables global විදිහට window object එකට දාමු
 window.currentLogoStyle = 1;
-window.selectedCharacterId = 1; 
+window.selectedCharacterId = 1;
 
-// 2. Style Change Function
+// 1. Style & Character Selection
 window.updateCurrentLogo = function(styleId) {
     window.currentLogoStyle = styleId;
     const mainImg = document.getElementById('main-logo');
-    if(mainImg) {
-        mainImg.src = `./assets/logos/s${styleId}_c${window.selectedCharacterId}.png`;
-    }
+    if(mainImg) mainImg.src = `./assets/logos/s${styleId}_c${window.selectedCharacterId}.png`;
     window.renderCharacters();
 };
 
-// 3. Characters Grid Function
 window.renderCharacters = function() {
     const grid = document.getElementById('char-grid');
     if(!grid) return;
@@ -25,21 +21,18 @@ window.renderCharacters = function() {
     }
 };
 
-// 4. Character Select Function
 window.selectFinal = function(el, charId) {
     window.selectedCharacterId = charId;
     document.querySelectorAll('.char-item').forEach(d => d.classList.remove('selected-card'));
     el.classList.add('selected-card');
     const mainImg = document.getElementById('main-logo');
-    if(mainImg) {
-        mainImg.src = `./assets/logos/s${window.currentLogoStyle}_c${charId}.png`;
-    }
+    if(mainImg) mainImg.src = `./assets/logos/s${window.currentLogoStyle}_c${charId}.png`;
     window.closeAllModals();
     const ed = document.getElementById("editor-section");
     if(ed) ed.scrollIntoView({ behavior: 'smooth' });
 };
 
-// 5. Logo Render Function (Dual Font + 98% Fix)
+// 2. Main Rendering Function (0% Fix)
 window.generateFinalLogo = function() {
     const userName = document.getElementById('target-name').value || "LOKAYA GFX";
     const userNumber = document.getElementById('target-number')?.value || "";
@@ -47,17 +40,20 @@ window.generateFinalLogo = function() {
 
     const renderScreen = document.getElementById('render-screen');
     const renderBar = document.getElementById('render-bar');
+    const renderStatus = document.getElementById('render-status');
 
     if(renderScreen) { renderScreen.classList.remove('hidden'); renderScreen.classList.add('flex'); }
+    if(renderStatus) renderStatus.innerText = "Connecting to Photopea...";
 
+    // GitHub ලින්ක් එක හරියටම තියෙනවද බලන්න
     const psdUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s${window.currentLogoStyle}_c${window.selectedCharacterId}.psd`;
     const muroFontUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/Muro.otf`;
 
     const photopeaConfig = {
         "files": [psdUrl, muroFontUrl],
         "script": `
-            app.loadFont("${muroFontUrl}");
-            function runExport() {
+            // Script එක පටන් ගන්න කලින් පොඩි වෙලාවක් ඉමු
+            function start() {
                 if (app.documents.length > 0) {
                     var doc = app.activeDocument;
                     function setLayer(name, val, font) {
@@ -65,15 +61,20 @@ window.generateFinalLogo = function() {
                             var l = doc.artLayers.getByName(name);
                             l.textItem.contents = val;
                             if(font) l.textItem.font = font;
-                        } catch(e) {}
+                        } catch(e) { console.log("Missing layer: " + name); }
                     }
+                    
+                    app.loadFont("${muroFontUrl}");
+                    
                     setLayer("LogoName", "${userName.toUpperCase()}", "Muro-Regular");
                     setLayer("LogoNumber", "${userNumber}", "BebasNeue-Regular");
                     setLayer("LogoTitle", "${userTitle.toUpperCase()}", "Muro-Regular");
+                    
                     app.activeDocument.saveToOE("png");
                 }
             }
-            setTimeout(runExport, 2000); // PSD එක Load වෙන්න තත්පර 2ක් දෙනවා
+            // 0% හිර නොවෙන්න මෙතන තත්පර 3ක් ඉමු
+            setTimeout(start, 3000);
         `,
         "serverMode": true
     };
@@ -83,15 +84,31 @@ window.generateFinalLogo = function() {
     iframe.src = "https://www.photopea.com#" + encodeURI(JSON.stringify(photopeaConfig));
     document.body.appendChild(iframe);
 
+    // Progress Bar එකට පොඩි ගැම්මක් දෙමු
+    let prog = 0;
+    const pInt = setInterval(() => {
+        prog += 5;
+        if(prog > 95) prog = 95;
+        if(renderBar) renderBar.style.width = prog + "%";
+        if(renderStatus) renderStatus.innerText = "Processing Logo... " + prog + "%";
+    }, 500);
+
     window.addEventListener("message", function handleMsg(e) {
         if (e.data instanceof ArrayBuffer) {
+            clearInterval(pInt);
             if(renderBar) renderBar.style.width = "100%";
+            if(renderStatus) renderStatus.innerText = "Download Ready!";
+            
             const url = URL.createObjectURL(new Blob([e.data], {type: "image/png"}));
             const a = document.createElement("a");
             a.href = url;
-            a.download = "Logo.png";
+            a.download = \`Logo_\${userName}.png\`;
             a.click();
-            setTimeout(() => { renderScreen.classList.add('hidden'); document.body.removeChild(iframe); }, 1000);
+            
+            setTimeout(() => { 
+                renderScreen.classList.add('hidden'); 
+                document.body.removeChild(iframe); 
+            }, 1000);
             window.removeEventListener("message", handleMsg);
         }
     });
@@ -99,41 +116,23 @@ window.generateFinalLogo = function() {
 
 // UI Functions
 window.revealEditor = function() {
-    const name = document.getElementById("home-name").value;
-    if(!name) { alert("Please enter a name!"); return; }
+    const n = document.getElementById("home-name").value;
+    if(!n) { alert("Enter Name!"); return; }
     document.getElementById("editor-section").classList.remove("hidden-section");
-    document.getElementById("target-name").value = name;
+    document.getElementById("target-name").value = n;
     window.renderCharacters();
     setTimeout(() => { document.getElementById("editor-section").scrollIntoView({ behavior: 'smooth' }); }, 100);
-};
-
-window.toggleModal = function(id, show) {
-    const m = document.getElementById(id);
-    const o = document.getElementById('modal-overlay');
-    if (show && m && o) {
-        document.querySelectorAll('.custom-modal').forEach(mod => mod.classList.remove('modal-active'));
-        o.style.display = 'block'; 
-        setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10);
-    } else { window.closeAllModals(); }
 };
 
 window.closeAllModals = function() {
     document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('modal-active'));
     const o = document.getElementById('modal-overlay');
-    if(o) { o.style.opacity = '0'; setTimeout(() => { o.style.display = 'none'; }, 400); }
+    if(o) { o.style.opacity = '0'; setTimeout(() => o.style.display = 'none', 400); }
 };
 
-window.showComingSoon = function() { 
-    const c = document.getElementById('coming-soon-layer');
-    if(c) c.style.display = 'flex'; 
-};
-
-window.hideComingSoon = function() { 
-    const c = document.getElementById('coming-soon-layer');
-    if(c) c.style.display = 'none'; 
-};
-
-window.onscroll = function() {
-    const header = document.getElementById("slim-header");
-    if(header) header.classList.toggle("visible", window.pageYOffset > 300);
+window.toggleModal = function(id, show) {
+    const m = document.getElementById(id);
+    const o = document.getElementById('modal-overlay');
+    if (show && m && o) { o.style.display = 'block'; setTimeout(() => m.classList.add('modal-active'), 10); }
+    else { window.closeAllModals(); }
 };
