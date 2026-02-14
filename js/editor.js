@@ -322,35 +322,71 @@ function executePhotopeaScript(logoName, logoNumber, logoTitle) {
     const fontUrl = 'https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/Muro.otf';
     
     console.log('🔤 Font URL:', fontUrl);
+    updateRenderStatus('Loading font and updating layers...');
     
+    // Enhanced script with detailed logging
+    const fullScript = 
+        'console.log("🔤 Loading font...");' +
+        'app.loadFont("' + fontUrl + '");' +
+        'setTimeout(function() {' +
+        '  console.log("📝 Updating text layers...");' +
+        '  var doc = app.activeDocument;' +
+        '  console.log("📄 Document name:", doc.name);' +
+        '  try { ' +
+        '    var nameLayer = doc.artLayers.getByName("LogoName");' +
+        '    nameLayer.textItem.contents = "' + logoName.replace(/"/g, '\\"') + '";' +
+        '    console.log("✅ LogoName updated");' +
+        '  } catch(e) { console.error("❌ LogoName error:", e); }' +
+        '  try { ' +
+        '    var numLayer = doc.artLayers.getByName("LogoNumber");' +
+        '    numLayer.textItem.contents = "' + logoNumber.replace(/"/g, '\\"') + '";' +
+        '    console.log("✅ LogoNumber updated");' +
+        '  } catch(e) { console.error("❌ LogoNumber error:", e); }' +
+        '  try { ' +
+        '    var titleLayer = doc.artLayers.getByName("LogoTitel");' +
+        '    titleLayer.textItem.contents = "' + logoTitle.replace(/"/g, '\\"') + '";' +
+        '    console.log("✅ LogoTitel updated");' +
+        '  } catch(e) { console.error("❌ LogoTitel error:", e); }' +
+        '  setTimeout(function() {' +
+        '    console.log("💾 Exporting PNG...");' +
+        '    var result = doc.saveToOE("png");' +
+        '    console.log("📊 Export result type:", typeof result);' +
+        '    console.log("📊 Export result:", result);' +
+        '    if (result instanceof ArrayBuffer) {' +
+        '      console.log("✅ ArrayBuffer created, size:", result.byteLength);' +
+        '    }' +
+        '  }, 500);' +
+        '}, 2500);';
+    
+    console.log('📤 Sending enhanced script...');
+    updateRenderStatus('Processing your logo...');
+    isWaitingForPNG = true;
+    
+    photopeaWindow.postMessage(fullScript, '*');
+    
+    // Fallback with helpful message
     setTimeout(function() {
-        console.log('📤 Loading font...');
-        photopeaWindow.postMessage('app.loadFont("' + fontUrl + '");', '*');
-        
-        setTimeout(function() {
-            console.log('📤 Updating LogoName...');
-            photopeaWindow.postMessage('app.activeDocument.artLayers.getByName("LogoName").textItem.contents = "' + logoName.replace(/"/g, '\\"') + '";', '*');
+        if (isWaitingForPNG) {
+            console.log('⚠️ No ArrayBuffer received after 15 seconds');
+            console.log('💡 Check Photopea console logs above for details');
+            isWaitingForPNG = false;
+            
+            const renderBar = document.getElementById('render-bar');
+            const renderPerc = document.getElementById('render-perc');
+            const renderStatus = document.getElementById('render-status');
+            
+            if (renderBar) renderBar.style.width = '100%';
+            if (renderPerc) renderPerc.textContent = '100%';
+            if (renderStatus) {
+                renderStatus.innerHTML = 'Export timeout - please check console and try again<br><small>Press F12 to see detailed logs</small>';
+            }
             
             setTimeout(function() {
-                console.log('📤 Updating LogoNumber...');
-                photopeaWindow.postMessage('app.activeDocument.artLayers.getByName("LogoNumber").textItem.contents = "' + logoNumber.replace(/"/g, '\\"') + '";', '*');
-                
-                setTimeout(function() {
-                    console.log('📤 Updating LogoTitel...');
-                    photopeaWindow.postMessage('app.activeDocument.artLayers.getByName("LogoTitel").textItem.contents = "' + logoTitle.replace(/"/g, '\\"') + '";', '*');
-                    
-                    setTimeout(function() {
-                        console.log('📤 Exporting PNG...');
-                        updateRenderStatus('Exporting PNG...');
-                        isWaitingForPNG = true;
-                        photopeaWindow.postMessage('app.activeDocument.saveToOE("png");', '*');
-                    }, 500);
-                }, 500);
-            }, 500);
-        }, 2000);
-    }, 500);
+                hideRenderScreen();
+            }, 5000);
+        }
+    }, 15000);
 }
-
 function handlePhotopeaMessage(event) {
     if (event.origin !== 'https://www.photopea.com') {
         return;
