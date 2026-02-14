@@ -1,32 +1,31 @@
-// 1. variables ලෑස්ති කරගමු
+// 1. variables global විදිහට window object එකට දාමු
 window.currentLogoStyle = 1;
 window.selectedCharacterId = 1; 
 
-// 2. Style එක මාරු කිරීම (Modal එක වැහෙන්නේ නැත)
+// 2. Style Change Function
 window.updateCurrentLogo = function(styleId) {
     window.currentLogoStyle = styleId;
     const mainImg = document.getElementById('main-logo');
     if(mainImg) {
         mainImg.src = `./assets/logos/s${styleId}_c${window.selectedCharacterId}.png`;
     }
-    // Style එක මාරු කළාම grid එකත් අලුත් වෙන්න ඕනේ
     window.renderCharacters();
 };
 
-// 3. Characters Grid එක පෙන්වීම
+// 3. Characters Grid Function
 window.renderCharacters = function() {
     const grid = document.getElementById('char-grid');
     if(!grid) return;
     grid.innerHTML = "";
     for(let i=1; i<=9; i++) {
         grid.innerHTML += `
-            <div onclick="selectFinal(this, ${i})" class="char-item aspect-square bg-white/5 rounded-2xl border border-white/5 overflow-hidden cursor-pointer active:scale-95 transition-all">
-                <img src="./assets/logos/s${window.currentLogoStyle}_c${i}.png" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150?text=Error'">
+            <div onclick="window.selectFinal(this, ${i})" class="char-item aspect-square bg-white/5 rounded-2xl border border-white/5 overflow-hidden cursor-pointer active:scale-95 transition-all">
+                <img src="./assets/logos/s${window.currentLogoStyle}_c${i}.png" class="w-full h-full object-cover">
             </div>`;
     }
 };
 
-// 4. Character එක තෝරාගැනීම සහ Modal එක Close කිරීම
+// 4. Character Select Function
 window.selectFinal = function(el, charId) {
     window.selectedCharacterId = charId;
     document.querySelectorAll('.char-item').forEach(d => d.classList.remove('selected-card'));
@@ -36,55 +35,37 @@ window.selectFinal = function(el, charId) {
         mainImg.src = `./assets/logos/s${window.currentLogoStyle}_c${charId}.png`;
     }
     window.closeAllModals();
-    // Character එක තෝරපුවාම Editor එකට Scroll වෙනවා
-    const editorSection = document.getElementById("editor-section");
-    if(editorSection) {
-        editorSection.scrollIntoView({ behavior: 'smooth' });
-    }
+    const ed = document.getElementById("editor-section");
+    if(ed) ed.scrollIntoView({ behavior: 'smooth' });
 };
 
-// 5. PHOTOPEA හරහා ලෝගෝ එක හැදීම (Dual Font & Title Fix)
+// 5. Logo Render Function (Dual Font + 98% Fix)
 window.generateFinalLogo = function() {
     const userName = document.getElementById('target-name').value || "LOKAYA GFX";
     const userNumber = document.getElementById('target-number')?.value || "";
-    const userTitle = document.getElementById('target-title').value || ""; // Title එක ගන්නවා
+    const userTitle = document.getElementById('target-title').value || "";
 
     const renderScreen = document.getElementById('render-screen');
     const renderBar = document.getElementById('render-bar');
-    const renderStatus = document.getElementById('render-status');
-    const renderPerc = document.getElementById('render-perc');
-    const renderPreview = document.getElementById('render-preview');
 
-    if(renderScreen) {
-        renderScreen.classList.remove('hidden');
-        renderScreen.classList.add('flex');
-        renderPreview.src = document.getElementById('main-logo').src;
-    }
-
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-        progress += Math.random() * 8;
-        if (progress > 98) progress = 98;
-        if(renderBar) renderBar.style.width = progress + "%";
-        if(renderPerc) renderPerc.innerText = Math.floor(progress) + "%";
-    }, 300);
+    if(renderScreen) { renderScreen.classList.remove('hidden'); renderScreen.classList.add('flex'); }
 
     const psdUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s${window.currentLogoStyle}_c${window.selectedCharacterId}.psd`;
     const muroFontUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/Muro.otf`;
 
     const photopeaConfig = {
-        "files": [psdUrl, muroFontUrl], 
+        "files": [psdUrl, muroFontUrl],
         "script": `
             app.loadFont("${muroFontUrl}");
             function runExport() {
                 if (app.documents.length > 0) {
                     var doc = app.activeDocument;
-                    function setLayer(name, val, fontName) {
+                    function setLayer(name, val, font) {
                         try {
                             var l = doc.artLayers.getByName(name);
                             l.textItem.contents = val;
-                            if(fontName) { l.textItem.font = fontName; }
-                        } catch(e) { console.log("Missing Layer: " + name); }
+                            if(font) l.textItem.font = font;
+                        } catch(e) {}
                     }
                     setLayer("LogoName", "${userName.toUpperCase()}", "Muro-Regular");
                     setLayer("LogoNumber", "${userNumber}", "BebasNeue-Regular");
@@ -92,7 +73,7 @@ window.generateFinalLogo = function() {
                     app.activeDocument.saveToOE("png");
                 }
             }
-            setTimeout(runExport, 2000);
+            setTimeout(runExport, 2000); // PSD එක Load වෙන්න තත්පර 2ක් දෙනවා
         `,
         "serverMode": true
     };
@@ -104,85 +85,55 @@ window.generateFinalLogo = function() {
 
     window.addEventListener("message", function handleMsg(e) {
         if (e.data instanceof ArrayBuffer) {
-            clearInterval(progressInterval);
             if(renderBar) renderBar.style.width = "100%";
-            if(renderPerc) renderPerc.innerText = "100%";
-            if(renderStatus) renderStatus.innerText = "Done!";
-
             const url = URL.createObjectURL(new Blob([e.data], {type: "image/png"}));
             const a = document.createElement("a");
             a.href = url;
-            a.download = \`Logo_\${userName}.png\`;
+            a.download = "Logo.png";
             a.click();
-            
-            setTimeout(() => {
-                if(renderScreen) renderScreen.classList.add('hidden');
-                document.body.removeChild(iframe);
-            }, 1000);
+            setTimeout(() => { renderScreen.classList.add('hidden'); document.body.removeChild(iframe); }, 1000);
             window.removeEventListener("message", handleMsg);
         }
     });
 };
 
-// --- අතුරුදහන් වුණු UI Functions ඔක්කොම මෙන්න ---
-
+// UI Functions
 window.revealEditor = function() {
-    const nameInput = document.getElementById("home-name");
-    const name = nameInput ? nameInput.value : "";
+    const name = document.getElementById("home-name").value;
     if(!name) { alert("Please enter a name!"); return; }
-    
     document.getElementById("editor-section").classList.remove("hidden-section");
     document.getElementById("target-name").value = name;
     window.renderCharacters();
-    
-    // Create Logo එබුවම පහළට Smooth Scroll වෙනවා
-    setTimeout(() => { 
-        document.getElementById("editor-section").scrollIntoView({ behavior: 'smooth' }); 
-    }, 100);
+    setTimeout(() => { document.getElementById("editor-section").scrollIntoView({ behavior: 'smooth' }); }, 100);
 };
 
 window.toggleModal = function(id, show) {
     const m = document.getElementById(id);
     const o = document.getElementById('modal-overlay');
-    if (show) {
+    if (show && m && o) {
         document.querySelectorAll('.custom-modal').forEach(mod => mod.classList.remove('modal-active'));
-        if(m && o) {
-            o.style.display = 'block'; 
-            setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10);
-        }
-    } else {
-        window.closeAllModals();
-    }
+        o.style.display = 'block'; 
+        setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10);
+    } else { window.closeAllModals(); }
 };
 
 window.closeAllModals = function() {
     document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('modal-active'));
     const o = document.getElementById('modal-overlay');
-    if(o) { 
-        o.style.opacity = '0'; 
-        setTimeout(() => { o.style.display = 'none'; }, 400); 
-    }
+    if(o) { o.style.opacity = '0'; setTimeout(() => { o.style.display = 'none'; }, 400); }
 };
 
-// Coming Soon buttons සඳහා
 window.showComingSoon = function() { 
-    const layer = document.getElementById('coming-soon-layer');
-    if(layer) layer.style.display = 'flex'; 
+    const c = document.getElementById('coming-soon-layer');
+    if(c) c.style.display = 'flex'; 
 };
 
 window.hideComingSoon = function() { 
-    const layer = document.getElementById('coming-soon-layer');
-    if(layer) layer.style.display = 'none'; 
+    const c = document.getElementById('coming-soon-layer');
+    if(c) c.style.display = 'none'; 
 };
 
-// උඩින් එන Bar එක (Slim Header) Scroll කරද්දී පෙන්වීමට
 window.onscroll = function() {
     const header = document.getElementById("slim-header");
-    if(header) {
-        if (window.pageYOffset > 300) {
-            header.classList.add("visible");
-        } else {
-            header.classList.remove("visible");
-        }
-    }
+    if(header) header.classList.toggle("visible", window.pageYOffset > 300);
 };
