@@ -68,7 +68,7 @@ window.generateFinalLogo = function() {
                     
                     setLayer("LogoName", "${userName.toUpperCase()}", "Muro-Regular");
                     setLayer("LogoNumber", "${userNumber}", "BebasNeue-Regular");
-                    setLayer("LogoTitle", "${userTitle.toUpperCase()}", "Muro-Regular");
+                    setLayer("LogoTitle", "${userTitle.toUpperCase()}", "BebasNeue-Regular");
                     
                     app.activeDocument.saveToOE("png");
                 }
