@@ -1,112 +1,136 @@
-// Global Variables
+// 1. මුලින්ම පාවිච්චි කරන Variables
 window.currentLogoStyle = 1;
 window.selectedCharacterId = 1;
 
-// --- 1. UI & Navigation (Buttons ඔක්කොම වැඩ කරන්න) ---
+// --- 2. UI පාලනය (Navigation & Modals) ---
+
+// Create Logo Button එක එබුවම යටට scroll වෙන්න
 window.revealEditor = function() {
     const nameInput = document.getElementById("home-name");
-    if(!nameInput || !nameInput.value) { alert("Please enter a name!"); return; }
+    if(!nameInput || !nameInput.value) {
+        alert("Please enter a name first!");
+        return;
+    }
     
-    const editorSection = document.getElementById("editor-section");
-    if(editorSection) editorSection.classList.remove("hidden-section");
+    // Editor එක පෙන්නන්න
+    const editor = document.getElementById("editor-section");
+    editor.classList.remove("hidden-section");
     
-    const targetName = document.getElementById("target-name");
-    if(targetName) targetName.value = nameInput.value;
+    // උඩ ගැහුව නම යට input එකට දාන්න
+    document.getElementById("target-name").value = nameInput.value;
     
+    // Character grid එක හදන්න
     window.renderCharacters();
-    // Create Logo එබුවම යටට Smooth යන්න
-    setTimeout(() => { if(editorSection) editorSection.scrollIntoView({ behavior: 'smooth' }); }, 100);
+    
+    // Smooth scroll කරන්න
+    setTimeout(() => {
+        editor.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
 };
 
+// Modal පාලනය
 window.toggleModal = function(id, show) {
-    const m = document.getElementById(id);
-    const o = document.getElementById('modal-overlay');
-    if (show && m && o) {
-        document.querySelectorAll('.custom-modal').forEach(mod => mod.classList.remove('modal-active'));
-        o.style.display = 'block'; 
-        setTimeout(() => { m.classList.add('modal-active'); o.style.opacity = '1'; }, 10);
-    } else { 
-        window.closeAllModals(); 
+    const modal = document.getElementById(id);
+    const overlay = document.getElementById('modal-overlay');
+    
+    if (show) {
+        // පරණ ඒවා වහන්න
+        document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('modal-active'));
+        overlay.style.display = 'block';
+        setTimeout(() => {
+            modal.classList.add('modal-active');
+            overlay.style.opacity = '1';
+        }, 10);
+    } else {
+        window.closeAllModals();
     }
 };
 
 window.closeAllModals = function() {
     document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('modal-active'));
-    const o = document.getElementById('modal-overlay');
-    if(o) { o.style.opacity = '0'; setTimeout(() => { o.style.display = 'none'; }, 400); }
+    const overlay = document.getElementById('modal-overlay');
+    if(overlay) {
+        overlay.style.opacity = '0';
+        setTimeout(() => { overlay.style.display = 'none'; }, 400);
+    }
 };
 
-window.showComingSoon = function() { 
-    const c = document.getElementById('coming-soon-layer');
-    if(c) c.style.display = 'flex'; 
-};
+// Coming Soon දේවල්
+window.showComingSoon = function() { document.getElementById('coming-soon-layer').style.display = 'flex'; };
+window.hideComingSoon = function() { document.getElementById('coming-soon-layer').style.display = 'none'; };
 
-window.hideComingSoon = function() { 
-    const c = document.getElementById('coming-soon-layer');
-    if(c) c.style.display = 'none'; 
-};
-
+// Scroll Bar එක (Slim Header)
 window.onscroll = function() {
     const header = document.getElementById("slim-header");
-    if(header) header.classList.toggle("visible", window.pageYOffset > 300);
+    if(header) {
+        if (window.pageYOffset > 300) header.classList.add("visible");
+        else header.classList.remove("visible");
+    }
 };
 
-// --- 2. Style & Character Selection ---
+// --- 3. Logo & Character Logic ---
+
+// Style එක මාරු කරද්දී (s1, s2, s3)
 window.updateCurrentLogo = function(styleId) {
     window.currentLogoStyle = styleId;
     const mainImg = document.getElementById('main-logo');
-    if(mainImg) mainImg.src = `./assets/logos/s${styleId}_c${window.selectedCharacterId}.png`;
+    // ප්‍රධාන රූපය වෙනස් කරනවා
+    mainImg.src = `./assets/logos/s${styleId}_c${window.selectedCharacterId}.png`;
+    // Characters grid එකත් ඒ style එකට අදාළව අලුත් කරනවා
     window.renderCharacters();
 };
 
+// Grid එක ඇතුළේ characters 9 පෙන්වීම
 window.renderCharacters = function() {
     const grid = document.getElementById('char-grid');
     if(!grid) return;
+    
     grid.innerHTML = "";
     for(let i=1; i<=9; i++) {
         grid.innerHTML += `
-            <div onclick="window.selectFinal(this, ${i})" class="char-item aspect-square bg-white/5 rounded-2xl border border-white/5 overflow-hidden cursor-pointer active:scale-95 transition-all">
-                <img src="./assets/logos/s${window.currentLogoStyle}_c${i}.png" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150?text=Error'">
+            <div onclick="window.selectFinal(this, ${i})" class="char-item aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-all">
+                <img src="./assets/logos/s${window.currentLogoStyle}_c${i}.png" class="w-full h-full object-cover">
             </div>`;
     }
 };
 
+// Grid එකෙන් එකක් තෝරාගත්තම
 window.selectFinal = function(el, charId) {
     window.selectedCharacterId = charId;
-    document.querySelectorAll('.char-item').forEach(d => d.classList.remove('selected-card'));
-    el.classList.add('selected-card');
-    const mainImg = document.getElementById('main-logo');
-    if(mainImg) mainImg.src = `./assets/logos/s${window.currentLogoStyle}_c${charId}.png`;
+    
+    // Select වුණ බව පෙන්නන්න border එකක් දාමු
+    document.querySelectorAll('.char-item').forEach(item => item.style.borderColor = "rgba(255,255,255,0.1)");
+    el.style.borderColor = "#6638A6";
+    
+    // ප්‍රධාන රූපය update කරලා modal එක වහන්න
+    document.getElementById('main-logo').src = `./assets/logos/s${window.currentLogoStyle}_c${charId}.png`;
     window.closeAllModals();
-    const ed = document.getElementById("editor-section");
-    if(ed) ed.scrollIntoView({ behavior: 'smooth' });
 };
 
-// --- 3. Photopea Rendering Engine (0% & 98% Fixes + Dual Fonts) ---
+// --- 4. Photopea Engine (Rendering) ---
+
 window.generateFinalLogo = function() {
-    // ?.value පාවිච්චි කරලා තියෙන්නේ HTML එකේ මේ id නැති වුණත් script එක crash නොවෙන්නයි
-    const userName = document.getElementById('target-name')?.value || "LOKAYA GFX";
-    const userNumber = document.getElementById('target-number')?.value || "";
-    const userTitle = document.getElementById('target-title')?.value || "";
+    const userName = document.getElementById('target-name').value || "LOKAYA GFX";
+    const userNumber = document.getElementById('target-number').value || "";
+    const userTitle = document.getElementById('target-title').value || "";
 
     const renderScreen = document.getElementById('render-screen');
     const renderBar = document.getElementById('render-bar');
-    const renderStatus = document.getElementById('render-status');
     const renderPerc = document.getElementById('render-perc');
+    const renderPreview = document.getElementById('render-preview');
 
-    if(renderScreen) { 
-        renderScreen.classList.remove('hidden'); 
-        renderScreen.classList.add('flex'); 
-    }
+    // Rendering screen එක පෙන්වන්න
+    renderScreen.classList.remove('hidden');
+    renderScreen.classList.add('flex');
+    renderPreview.src = document.getElementById('main-logo').src;
 
-    // 0% - 98% ප්‍රශ්නය විසඳන්න Progress Bar එක හදලා තියෙනවා
+    // Loading Progress Animation (0% - 95%)
     let progress = 0;
     const progressInterval = setInterval(() => {
-        progress += Math.random() * 5; 
-        if (progress > 95) progress = 95; // Photopea ඉවර වෙනකම් 95% න් නවතිනවා
-        if(renderBar) renderBar.style.width = progress + "%";
-        if(renderPerc) renderPerc.innerText = Math.floor(progress) + "%";
-        if(renderStatus) renderStatus.innerText = "Processing in Photopea... " + Math.floor(progress) + "%";
+        progress += Math.random() * 5;
+        if (progress > 95) progress = 95;
+        renderBar.style.width = progress + "%";
+        renderPerc.innerText = Math.floor(progress) + "%";
     }, 400);
 
     const psdUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s${window.currentLogoStyle}_c${window.selectedCharacterId}.psd`;
@@ -115,26 +139,26 @@ window.generateFinalLogo = function() {
     const photopeaConfig = {
         "files": [psdUrl, muroFontUrl],
         "script": `
-            function updateLayer(layerName, textValue, fontName) {
-                try {
-                    var layer = app.activeDocument.artLayers.getByName(layerName);
-                    layer.textItem.contents = textValue;
-                    if(fontName) { layer.textItem.font = fontName; }
-                } catch(e) {} // Error එකක් ආවත් හිර වෙන්නේ නැහැ
-            }
-
-            function runExport() {
+            app.loadFont("${muroFontUrl}");
+            function run() {
                 if (app.documents.length > 0) {
-                    updateLayer("LogoName", "${userName.toUpperCase()}", "Muro-Regular");
-                    updateLayer("LogoNumber", "${userNumber}", "BebasNeue-Regular");
-                    updateLayer("LogoTitle", "${userTitle.toUpperCase()}", "Muro-Regular");
+                    var doc = app.activeDocument;
+                    function setT(layerName, val, font) {
+                        try {
+                            var l = doc.artLayers.getByName(layerName);
+                            l.textItem.contents = val;
+                            if(font) l.textItem.font = font;
+                        } catch(e) {}
+                    }
+                    // Fonts: Name -> Muro, Number -> Bebas, Title -> Muro
+                    setT("LogoName", "${userName.toUpperCase()}", "Muro-Regular");
+                    setT("LogoNumber", "${userNumber}", "BebasNeue-Regular");
+                    setT("LogoTitle", "${userTitle.toUpperCase()}", "Muro-Regular");
                     
                     app.activeDocument.saveToOE("png");
                 }
             }
-
-            // Photopea එකට PSD එක load වෙන්න තත්පර 2ක් දෙනවා
-            setTimeout(runExport, 2000);
+            setTimeout(run, 2500);
         `,
         "serverMode": true
     };
@@ -147,9 +171,8 @@ window.generateFinalLogo = function() {
     window.addEventListener("message", function handleMsg(e) {
         if (e.data instanceof ArrayBuffer) {
             clearInterval(progressInterval);
-            if(renderBar) renderBar.style.width = "100%";
-            if(renderPerc) renderPerc.innerText = "100%";
-            if(renderStatus) renderStatus.innerText = "Download Ready!";
+            renderBar.style.width = "100%";
+            renderPerc.innerText = "100%";
             
             const url = URL.createObjectURL(new Blob([e.data], {type: "image/png"}));
             const a = document.createElement("a");
@@ -157,12 +180,11 @@ window.generateFinalLogo = function() {
             a.download = \`LokayaGFX_\${userName}.png\`;
             a.click();
             
-            setTimeout(() => { 
-                if(renderScreen) renderScreen.classList.add('hidden'); 
-                document.body.removeChild(iframe); 
-            }, 1500);
+            setTimeout(() => {
+                renderScreen.classList.add('hidden');
+                document.body.removeChild(iframe);
+            }, 1000);
             window.removeEventListener("message", handleMsg);
         }
     });
 };
-        
