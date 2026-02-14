@@ -8,22 +8,83 @@ let photopeaWindow = null;
 console.log('✅ Editor.js loaded successfully');
 
 // ========================
-// NAVIGATION & INITIALIZATION
+// COMING SOON LAYER
+// ========================
+function showComingSoon() {
+    console.log('⏰ showComingSoon() called');
+    const layer = document.getElementById('coming-soon-layer');
+    if (layer) {
+        layer.style.display = 'flex';
+        console.log('✅ Coming soon layer shown');
+    }
+}
+
+function hideComingSoon() {
+    console.log('🚫 hideComingSoon() called');
+    const layer = document.getElementById('coming-soon-layer');
+    if (layer) {
+        layer.style.display = 'none';
+        console.log('✅ Coming soon layer hidden');
+    }
+}
+
+// ========================
+// NAVIGATION & EDITOR REVEAL
 // ========================
 function revealEditor() {
     console.log('🚀 revealEditor() called');
     
-    const homeName = document.getElementById('home-name').value.trim();
+    const homeNameInput = document.getElementById('home-name');
+    const targetNameInput = document.getElementById('target-name');
+    const homeSection = document.querySelector('.bg-premium-dark');
+    const editorSection = document.getElementById('editor-section');
+    
+    if (!homeNameInput || !targetNameInput || !homeSection || !editorSection) {
+        console.error('❌ Required elements not found!');
+        return;
+    }
+    
+    const homeName = homeNameInput.value.trim();
     console.log('📝 Home name:', homeName);
     
-    document.getElementById('target-name').value = homeName || 'PLAYER';
+    targetNameInput.value = homeName || 'PLAYER';
     
-    document.getElementById('home-section').style.display = 'none';
-    document.getElementById('editor-section').style.display = 'block';
+    homeSection.style.display = 'none';
+    editorSection.classList.remove('hidden-section');
+    editorSection.style.display = 'flex';
     
     console.log('✅ Editor section revealed');
     
+    // Load default character
+    updateMainLogoImage();
     renderCharacters();
+}
+
+// ========================
+// LOGO STYLE SELECTION
+// ========================
+function updateCurrentLogo(styleNumber) {
+    console.log('🎨 updateCurrentLogo() called - Style:', styleNumber);
+    currentLogoStyle = styleNumber;
+    selectedCharacterId = 1; // Reset to character 1
+    updateMainLogoImage();
+    console.log('✅ Logo style updated');
+}
+
+function updateMainLogoImage() {
+    console.log('🖼️ updateMainLogoImage() - Style:', currentLogoStyle, 'Char:', selectedCharacterId);
+    const mainLogo = document.getElementById('main-logo');
+    if (mainLogo) {
+        const newSrc = `./assets/logos/s${currentLogoStyle}_c${selectedCharacterId}.png`;
+        mainLogo.src = newSrc;
+        console.log('✅ Main logo updated:', newSrc);
+        
+        // Also update render preview
+        const renderPreview = document.getElementById('render-preview');
+        if (renderPreview) {
+            renderPreview.src = newSrc;
+        }
+    }
 }
 
 // ========================
@@ -33,14 +94,19 @@ function renderCharacters() {
     console.log('🎨 renderCharacters() called - Style:', currentLogoStyle);
     
     const charGrid = document.getElementById('char-grid');
+    if (!charGrid) {
+        console.error('❌ char-grid element not found!');
+        return;
+    }
+    
     charGrid.innerHTML = '';
     
     for (let i = 1; i <= 9; i++) {
         const charCard = document.createElement('div');
-        charCard.className = 'char-card';
+        charCard.className = 'aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-transform';
         
         if (i === selectedCharacterId) {
-            charCard.classList.add('selected');
+            charCard.classList.add('selected-card');
             console.log('✨ Character', i, 'is selected');
         }
         
@@ -48,25 +114,24 @@ function renderCharacters() {
         const imgPath = `./assets/logos/s${currentLogoStyle}_c${i}.png`;
         img.src = imgPath;
         img.alt = `Character ${i}`;
-        img.loading = 'lazy';
-        
-        console.log('🖼️ Loading image:', imgPath);
+        img.className = 'w-full h-full object-cover';
         
         img.onerror = function() {
             console.error('❌ Failed to load image:', imgPath);
-            this.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23333" width="200" height="200"/%3E%3Ctext x="50%25" y="50%25" fill="%23666" text-anchor="middle" dy=".3em" font-family="Arial"%3ENo Image%3C/text%3E%3C/svg%3E';
         };
         
         img.onload = function() {
-            console.log('✅ Image loaded successfully:', imgPath);
+            console.log('✅ Image loaded:', imgPath);
         };
         
         charCard.appendChild(img);
         
+        // Click handler for character selection
         charCard.addEventListener('click', () => {
             console.log('👆 Character clicked:', i);
             selectedCharacterId = i;
-            renderCharacters();
+            updateMainLogoImage();
+            renderCharacters(); // Re-render to update selection
         });
         
         charGrid.appendChild(charCard);
@@ -76,51 +141,112 @@ function renderCharacters() {
 }
 
 // ========================
-// STYLE SELECTION
+// MODAL MANAGEMENT
 // ========================
-function selectStyle(styleNumber) {
-    console.log('🎨 Style selected:', styleNumber);
+function toggleModal(modalId, show) {
+    console.log('🎭 toggleModal() called - Modal:', modalId, 'Show:', show);
     
-    currentLogoStyle = styleNumber;
+    const modal = document.getElementById(modalId);
+    const overlay = document.getElementById('modal-overlay');
     
-    document.querySelectorAll('.style-btn').forEach(btn => {
-        btn.classList.remove('active');
+    if (!modal || !overlay) {
+        console.error('❌ Modal or overlay not found!');
+        return;
+    }
+    
+    if (show) {
+        // Close all other modals first
+        document.querySelectorAll('.custom-modal').forEach(m => {
+            m.classList.remove('modal-active');
+        });
+        
+        overlay.style.display = 'block';
+        setTimeout(() => {
+            modal.classList.add('modal-active');
+        }, 10);
+        
+        // Render characters if opening char-modal
+        if (modalId === 'char-modal') {
+            renderCharacters();
+        }
+        
+        console.log('✅ Modal shown:', modalId);
+    } else {
+        modal.classList.remove('modal-active');
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 400);
+        console.log('✅ Modal hidden:', modalId);
+    }
+}
+
+function closeAllModals() {
+    console.log('🚫 closeAllModals() called');
+    
+    document.querySelectorAll('.custom-modal').forEach(modal => {
+        modal.classList.remove('modal-active');
     });
-    event.target.classList.add('active');
     
-    renderCharacters();
+    const overlay = document.getElementById('modal-overlay');
+    if (overlay) {
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 400);
+    }
+    
+    console.log('✅ All modals closed');
 }
 
 // ========================
-// PHOTOPEA RENDERING LOGIC
+// LOGO GENERATION
 // ========================
-function generateLogo() {
-    console.log('🎯 generateLogo() called');
+function generateFinalLogo() {
+    console.log('🎯 generateFinalLogo() called');
     console.log('📊 Current State:', {
         style: currentLogoStyle,
         character: selectedCharacterId
     });
     
-    const logoName = document.getElementById('target-name').value.trim() || 'PLAYER';
-    const logoNumber = document.getElementById('target-number').value.trim() || '99';
-    const logoTitle = document.getElementById('target-title').value.trim() || 'LEGEND';
+    const targetNameInput = document.getElementById('target-name');
+    const targetNumberInput = document.getElementById('target-number');
+    const targetTitleInput = document.getElementById('target-title');
+    
+    if (!targetNameInput || !targetNumberInput || !targetTitleInput) {
+        console.error('❌ Input elements not found!');
+        alert('Error: Required input fields not found!');
+        return;
+    }
+    
+    const logoName = targetNameInput.value.trim() || 'PLAYER';
+    const logoNumber = targetNumberInput.value.trim() || '99';
+    const logoTitle = targetTitleInput.value.trim() || 'LEGEND';
     
     console.log('📝 Logo Details:', { logoName, logoNumber, logoTitle });
     
     const renderScreen = document.getElementById('render-screen');
     const renderBar = document.getElementById('render-bar');
+    const renderPerc = document.getElementById('render-perc');
+    const renderStatus = document.getElementById('render-status');
+    
+    if (!renderScreen || !renderBar) {
+        console.error('❌ Render screen elements not found!');
+        alert('Error: Render screen not found!');
+        return;
+    }
     
     renderScreen.style.display = 'flex';
     renderBar.style.width = '0%';
+    if (renderPerc) renderPerc.textContent = '0%';
+    if (renderStatus) renderStatus.textContent = 'Initializing Photopea Engine...';
     
     console.log('✅ Render screen shown');
     
-    animateProgressBar(renderBar, 95, 2000);
+    animateProgressBar(renderBar, renderPerc, 95, 3000);
     
     initializePhotopea(logoName, logoNumber, logoTitle);
 }
 
-function animateProgressBar(element, targetPercent, duration) {
+function animateProgressBar(element, percElement, targetPercent, duration) {
     console.log('📊 Progress bar animation started');
     
     const startTime = performance.now();
@@ -134,8 +260,12 @@ function animateProgressBar(element, targetPercent, duration) {
             ? 2 * progress * progress 
             : 1 - Math.pow(-2 * progress + 2, 2) / 2;
         
-        const currentPercent = startPercent + (targetPercent - startPercent) * easeProgress;
+        const currentPercent = Math.floor(startPercent + (targetPercent - startPercent) * easeProgress);
         element.style.width = currentPercent + '%';
+        
+        if (percElement) {
+            percElement.textContent = currentPercent + '%';
+        }
         
         if (progress < 1) {
             requestAnimationFrame(update);
@@ -147,6 +277,9 @@ function animateProgressBar(element, targetPercent, duration) {
     requestAnimationFrame(update);
 }
 
+// ========================
+// PHOTOPEA INTEGRATION
+// ========================
 function initializePhotopea(logoName, logoNumber, logoTitle) {
     console.log('🖼️ Initializing Photopea...');
     
@@ -171,12 +304,15 @@ function initializePhotopea(logoName, logoNumber, logoTitle) {
         
         setTimeout(() => {
             console.log('⏰ Executing Photopea script after delay');
+            updateRenderStatus('Loading PSD file...');
             executePhotopeaScript(logoName, logoNumber, logoTitle);
-        }, 1000);
+        }, 1500);
     };
     
     iframe.onerror = function() {
         console.error('❌ Failed to load Photopea iframe');
+        alert('Failed to load Photopea. Please check your internet connection.');
+        hideRenderScreen();
     };
 }
 
@@ -187,84 +323,57 @@ function executePhotopeaScript(logoName, logoNumber, logoTitle) {
     console.log('📄 PSD URL:', psdUrl);
     console.log('🔤 Font URL:', fontUrl);
     
+    updateRenderStatus('Loading custom font...');
+    
     const script = `
         app.echoToOE = false;
-        console.log('🎨 Photopea script started');
         
         function waitForFonts(callback, maxAttempts) {
             var attempts = 0;
             var interval = setInterval(function() {
                 attempts++;
-                console.log('⏳ Waiting for fonts... Attempt:', attempts);
                 if (app.fontsLoaded || attempts >= maxAttempts) {
                     clearInterval(interval);
-                    console.log('✅ Font check complete. Loaded:', app.fontsLoaded);
                     callback(app.fontsLoaded);
                 }
             }, 100);
         }
         
-        console.log('📂 Opening PSD file...');
         app.open("${psdUrl}");
-        
-        console.log('🔤 Loading font...');
         app.loadFont("${fontUrl}");
         
         waitForFonts(function(loaded) {
             if (loaded) {
-                console.log('✅ Fonts loaded successfully');
                 var doc = app.activeDocument;
-                console.log('📄 Document:', doc.name);
                 
                 try {
                     var nameLayer = doc.artLayers.getByName("LogoName");
-                    if (nameLayer) {
-                        nameLayer.textItem.contents = "${logoName.replace(/"/g, '\\"')}";
-                        console.log('✅ LogoName updated');
-                    }
-                } catch(e) {
-                    console.error('❌ Error updating LogoName:', e.message);
-                }
+                    if (nameLayer) nameLayer.textItem.contents = "${logoName.replace(/"/g, '\\"')}";
+                } catch(e) {}
                 
                 try {
                     var numberLayer = doc.artLayers.getByName("LogoNumber");
-                    if (numberLayer) {
-                        numberLayer.textItem.contents = "${logoNumber.replace(/"/g, '\\"')}";
-                        console.log('✅ LogoNumber updated');
-                    }
-                } catch(e) {
-                    console.error('❌ Error updating LogoNumber:', e.message);
-                }
+                    if (numberLayer) numberLayer.textItem.contents = "${logoNumber.replace(/"/g, '\\"')}";
+                } catch(e) {}
                 
                 try {
                     var titleLayer = doc.artLayers.getByName("LogoTitel");
-                    if (titleLayer) {
-                        titleLayer.textItem.contents = "${logoTitle.replace(/"/g, '\\"')}";
-                        console.log('✅ LogoTitel updated');
-                    }
-                } catch(e) {
-                    console.error('❌ Error updating LogoTitel:', e.message);
-                }
+                    if (titleLayer) titleLayer.textItem.contents = "${logoTitle.replace(/"/g, '\\"')}";
+                } catch(e) {}
                 
-                console.log('💾 Exporting PNG...');
                 app.activeDocument.saveToOE("png");
-                console.log('✅ Export command sent');
-                
-            } else {
-                console.error('❌ Font loading timeout');
-                alert("Font loading failed");
             }
         }, 50);
     `;
     
     console.log('📤 Sending script to Photopea');
+    updateRenderStatus('Processing your logo...');
     photopeaWindow.postMessage(script, '*');
 }
 
 function handlePhotopeaMessage(event) {
     console.log('📨 Message received from:', event.origin);
     console.log('📦 Message type:', typeof event.data);
-    console.log('📦 Message data:', event.data);
     
     if (event.origin !== 'https://www.photopea.com') {
         console.log('⚠️ Message not from Photopea, ignoring');
@@ -277,13 +386,21 @@ function handlePhotopeaMessage(event) {
         console.log('🎉 PNG ArrayBuffer received!');
         console.log('📊 Size:', data.byteLength, 'bytes');
         
+        updateRenderStatus('Finalizing download...');
+        
         const renderBar = document.getElementById('render-bar');
-        renderBar.style.width = '100%';
+        const renderPerc = document.getElementById('render-perc');
+        
+        if (renderBar) renderBar.style.width = '100%';
+        if (renderPerc) renderPerc.textContent = '100%';
+        
         console.log('✅ Progress bar completed');
         
         setTimeout(() => {
             downloadPNG(data);
-            hideRenderScreen();
+            setTimeout(() => {
+                hideRenderScreen();
+            }, 1000);
         }, 500);
     } else {
         console.log('ℹ️ Non-ArrayBuffer message:', data);
@@ -297,10 +414,12 @@ function downloadPNG(arrayBuffer) {
     const url = URL.createObjectURL(blob);
     
     const logoName = document.getElementById('target-name').value.trim() || 'PLAYER';
-    const filename = `${logoName}_Logo_Style${currentLogoStyle}_Char${selectedCharacterId}.png`;
+    const filename = `${logoName}_Logo_S${currentLogoStyle}_C${selectedCharacterId}.png`;
     
     console.log('📁 Filename:', filename);
     console.log('🔗 Blob URL:', url);
+    
+    updateRenderStatus('Download starting...');
     
     const a = document.createElement('a');
     a.href = url;
@@ -321,7 +440,9 @@ function hideRenderScreen() {
     console.log('🚫 Hiding render screen');
     
     const renderScreen = document.getElementById('render-screen');
-    renderScreen.style.display = 'none';
+    if (renderScreen) {
+        renderScreen.style.display = 'none';
+    }
     
     const iframe = document.getElementById('photopea-iframe');
     if (iframe) {
@@ -333,17 +454,37 @@ function hideRenderScreen() {
     console.log('👂 Message listener removed');
 }
 
+function updateRenderStatus(message) {
+    const renderStatus = document.getElementById('render-status');
+    if (renderStatus) {
+        renderStatus.textContent = message;
+        console.log('📝 Render status updated:', message);
+    }
+}
+
+// ========================
+// SCROLL HEADER
+// ========================
+let lastScrollTop = 0;
+window.addEventListener('scroll', function() {
+    const slimHeader = document.getElementById('slim-header');
+    const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+    
+    if (currentScroll > 100) {
+        slimHeader.classList.add('visible');
+    } else {
+        slimHeader.classList.remove('visible');
+    }
+    
+    lastScrollTop = currentScroll;
+});
+
 // ========================
 // INITIALIZATION
 // ========================
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🎬 DOM Content Loaded');
-    
-    const defaultStyleBtn = document.querySelector('.style-btn[onclick*="selectStyle(1)"]');
-    if (defaultStyleBtn) {
-        defaultStyleBtn.classList.add('active');
-        console.log('✅ Default style button activated');
-    }
+    console.log('✅ Editor initialized successfully');
 });
 
 console.log('📜 All functions defined successfully');
