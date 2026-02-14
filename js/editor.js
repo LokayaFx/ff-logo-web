@@ -12,18 +12,19 @@ window.revealEditor = function() {
     setTimeout(() => { document.getElementById("editor-section").scrollIntoView({ behavior: 'smooth' }); }, 100);
 };
 
-// --- Character Grid Logic (FIXED) ---
+// --- Character Grid Logic ---
 window.renderCharacters = function() {
     const grid = document.getElementById('char-grid');
     if(!grid) return;
-    grid.innerHTML = ""; // කලින් තිබ්බ ඒවා මකන්න
+    grid.innerHTML = ""; 
     
     for(let i=1; i<=9; i++) {
         const charDiv = document.createElement("div");
         charDiv.className = "char-item aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-all";
-        charDiv.onclick = function() { window.selectFinal(this, i); };
+        charDiv.onclick = (function(idx) {
+            return function() { window.selectFinal(this, idx); };
+        })(i);
         
-        // Image එක පේන්න මෙතන path එක නිවැරදි කළා
         const imgPath = "./assets/logos/s" + window.currentLogoStyle + "_c" + i + ".png";
         charDiv.innerHTML = '<img src="' + imgPath + '" class="w-full h-full object-cover" onerror="this.src=\'https://via.placeholder.com/150?text=Logo\'">';
         
@@ -37,7 +38,7 @@ window.updateCurrentLogo = function(style) {
     if(mainLogo) {
         mainLogo.src = "./assets/logos/s" + style + "_c" + window.selectedCharacterId + ".png";
     }
-    window.renderCharacters(); // Style එක මාරු වුණාම Grid එක අලුත් කරන්න
+    window.renderCharacters(); 
 };
 
 window.selectFinal = function(el, id) {
@@ -73,10 +74,7 @@ window.closeAllModals = function() {
     }
 };
 
-window.showComingSoon = function() { document.getElementById('coming-soon-layer').style.display = 'flex'; };
-window.hideComingSoon = function() { document.getElementById('coming-soon-layer').style.display = 'none'; };
-
-// --- Photopea Rendering Engine (Already Working) ---
+// --- Photopea Rendering Engine (The Final Repair) ---
 window.generateFinalLogo = function() {
     const name = (document.getElementById('target-name').value || "LOKAYA GFX").toUpperCase();
     const num = document.getElementById('target-number').value || "";
@@ -91,28 +89,31 @@ window.generateFinalLogo = function() {
 
     let prog = 0;
     const interval = setInterval(() => {
-        prog += 1; if(prog > 95) prog = 95;
+        prog += 2; if(prog > 95) prog = 95;
         bar.style.width = prog + "%";
         perc.innerText = prog + "%";
-    }, 200);
+    }, 300);
 
-    const psd = "https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s" + window.currentLogoStyle + "_c" + window.selectedCharacterId + ".psd";
-    const font = "https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/Muro.otf";
+    // PSD Path එක හරියටම හැදෙනවා මෙතනින්
+    const psdFile = "s" + window.currentLogoStyle + "_c" + window.selectedCharacterId + ".psd";
+    const psdUrl = "https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/" + psdFile;
+    const fontUrl = "https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/Muro.otf";
 
-    const pScript = "app.loadFont('" + font + "'); " +
-                   "function process() { " +
+    // Script එක ඇතුළේ කිසිම Backtick එකක් නැතුව සාමාන්‍ය විදිහට ලිව්වා
+    const pScript = "app.loadFont('" + fontUrl + "'); " +
+                   "function runProcess() { " +
                    "  if(app.documents.length > 0) { " +
-                   "    var d = app.activeDocument; " +
-                   "    function set(n, v) { try { d.artLayers.getByName(n).textItem.contents = v; } catch(e) {} } " +
-                   "    set('LogoName', '" + name + "'); " +
-                   "    set('LogoNumber', '" + num + "'); " +
-                   "    set('LogoTitel', '" + title + "'); " + // Your PSD spelling
-                   "    app.activeDocument.saveToOE('png'); " +
+                   "    var doc = app.activeDocument; " +
+                   "    function updateLayer(n, v) { try { doc.artLayers.getByName(n).textItem.contents = v; } catch(e) {} } " +
+                   "    updateLayer('LogoName', '" + name + "'); " +
+                   "    updateLayer('LogoNumber', '" + num + "'); " +
+                   "    updateLayer('LogoTitel', '" + title + "'); " +
+                   "    doc.saveToOE('png'); " +
                    "  } " +
                    "} " +
-                   "setTimeout(process, 4000);";
+                   "setTimeout(runProcess, 4000);";
 
-    const config = { "files": [psd, font], "script": pScript, "serverMode": true };
+    const config = { "files": [psdUrl, fontUrl], "script": pScript, "serverMode": true };
     const iframe = document.createElement("iframe");
     iframe.style.display = "none";
     iframe.src = "https://www.photopea.com#" + encodeURI(JSON.stringify(config));
@@ -128,8 +129,12 @@ window.generateFinalLogo = function() {
             a.href = url;
             a.download = "Logo_" + name + ".png";
             a.click();
-            setTimeout(() => { screen.classList.add('hidden'); document.body.removeChild(iframe); }, 1000);
+            setTimeout(() => { 
+                screen.classList.add('hidden'); 
+                if(document.body.contains(iframe)) document.body.removeChild(iframe); 
+            }, 1000);
             window.removeEventListener("message", handle);
         }
     });
 };
+                       
