@@ -196,7 +196,7 @@ function closeAllModals() {
 }
 
 // ========================
-// LOGO GENERATION
+// LOGO GENERATION - NEW POPUP METHOD
 // ========================
 function generateFinalLogo() {
     console.log('🎯 generateFinalLogo() called');
@@ -221,247 +221,67 @@ function generateFinalLogo() {
     
     console.log('📝 Logo Details:', { logoName: logoName, logoNumber: logoNumber, logoTitle: logoTitle });
     
-    const renderScreen = document.getElementById('render-screen');
-    const renderBar = document.getElementById('render-bar');
-    const renderPerc = document.getElementById('render-perc');
-    const renderStatus = document.getElementById('render-status');
-    
-    if (!renderScreen || !renderBar) {
-        console.error('❌ Render screen elements not found!');
-        alert('Error: Render screen not found!');
-        return;
-    }
-    
-    renderScreen.style.display = 'flex';
-    renderBar.style.width = '0%';
-    if (renderPerc) renderPerc.textContent = '0%';
-    if (renderStatus) renderStatus.textContent = 'Initializing Photopea Engine...';
-    
-    console.log('✅ Render screen shown');
-    
-    animateProgressBar(renderBar, renderPerc, 95, 3000);
-    
-    initializePhotopea(logoName, logoNumber, logoTitle);
-}
-
-function animateProgressBar(element, percElement, targetPercent, duration) {
-    console.log('📊 Progress bar animation started');
-    
-    const startTime = performance.now();
-    const startPercent = 0;
-    
-    function update(currentTime) {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        
-        const easeProgress = progress < 0.5 
-            ? 2 * progress * progress 
-            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-        
-        const currentPercent = Math.floor(startPercent + (targetPercent - startPercent) * easeProgress);
-        element.style.width = currentPercent + '%';
-        
-        if (percElement) {
-            percElement.textContent = currentPercent + '%';
-        }
-        
-        if (progress < 1) {
-            requestAnimationFrame(update);
-        } else {
-            console.log('✅ Progress bar reached', targetPercent + '%');
-        }
-    }
-    
-    requestAnimationFrame(update);
-}
-
-// ========================
-// PHOTOPEA INTEGRATION
-// ========================
-function initializePhotopea(logoName, logoNumber, logoTitle) {
-    console.log('🖼️ Initializing Photopea...');
-    
+    // Build URLs
     const psdUrl = 'https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s' + currentLogoStyle + '_c' + selectedCharacterId + '.psd';
-    
-    let iframe = document.getElementById('photopea-iframe');
-    if (!iframe) {
-        console.log('📦 Creating new Photopea iframe');
-        iframe = document.createElement('iframe');
-        iframe.id = 'photopea-iframe';
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
-    }
-    
-    iframe.src = 'https://www.photopea.com/#' + encodeURIComponent(psdUrl);
-    console.log('🌐 Loading Photopea with PSD');
-    
-    iframe.onload = function() {
-        console.log('✅ Photopea iframe loaded');
-        photopeaWindow = iframe.contentWindow;
-        
-        window.addEventListener('message', handlePhotopeaMessage);
-        console.log('👂 Message listener added');
-        
-        isWaitingForPNG = false;
-        
-        setTimeout(function() {
-            console.log('⏰ Executing Photopea script after delay');
-            updateRenderStatus('Loading font and updating text...');
-            executePhotopeaScript(logoName, logoNumber, logoTitle);
-        }, 5000);
-    };
-    
-    iframe.onerror = function() {
-        console.error('❌ Failed to load Photopea iframe');
-        alert('Failed to load Photopea. Please check your internet connection.');
-        hideRenderScreen();
-    };
-}
-
-function executePhotopeaScript(logoName, logoNumber, logoTitle) {
     const fontUrl = 'https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/Muro.otf';
     
+    console.log('📄 PSD URL:', psdUrl);
     console.log('🔤 Font URL:', fontUrl);
-    updateRenderStatus('Loading font and updating layers...');
     
-    // New approach: Use app.open with data URL
-    const fullScript = 
-        'console.log("🔤 Loading font...");' +
-        'app.loadFont("' + fontUrl + '");' +
-        'setTimeout(function() {' +
-        '  console.log("📝 Updating text layers...");' +
-        '  var doc = app.activeDocument;' +
-        '  try { doc.artLayers.getByName("LogoName").textItem.contents = "' + logoName.replace(/"/g, '\\"') + '"; console.log("✅ Name updated"); } catch(e) { console.error("❌ Name:", e); }' +
-        '  try { doc.artLayers.getByName("LogoNumber").textItem.contents = "' + logoNumber.replace(/"/g, '\\"') + '"; console.log("✅ Number updated"); } catch(e) { console.error("❌ Number:", e); }' +
-        '  try { doc.artLayers.getByName("LogoTitel").textItem.contents = "' + logoTitle.replace(/"/g, '\\"') + '"; console.log("✅ Title updated"); } catch(e) { console.error("❌ Title:", e); }' +
-        '  setTimeout(function() {' +
-        '    console.log("💾 Starting export...");' +
-        '    app.activeDocument.saveToOE("png");' +
-        '    console.log("✅ Export command executed");' +
-        '  }, 1000);' +
-        '}, 3000);';
+    // Open Photopea in new window
+    const photopeaUrl = 'https://www.photopea.com/' + encodeURIComponent(psdUrl);
+    const newWindow = window.open(
+        photopeaUrl,
+        'PhotopeaEditor',
+        'width=1400,height=900,menubar=no,toolbar=no,location=no,status=no'
+    );
     
-    console.log('📤 Sending script to Photopea...');
-    isWaitingForPNG = true;
-    
-    photopeaWindow.postMessage(fullScript, '*');
-    console.log('✅ Script sent, waiting for response...');
-    
-    // Extended timeout
-    setTimeout(function() {
-        if (isWaitingForPNG) {
-            console.log('⚠️ ArrayBuffer not received - trying alternative method...');
-            
-            // Try requesting export again
-            console.log('🔄 Sending export command again...');
-            photopeaWindow.postMessage('app.activeDocument.saveToOE("png");', '*');
-            
-            // Wait another 5 seconds
-            setTimeout(function() {
-                if (isWaitingForPNG) {
-                    console.error('❌ Export failed - Photopea may not support saveToOE in this context');
-                    isWaitingForPNG = false;
-                    
-                    alert('Logo export failed. This may be due to browser restrictions. Please try:\n\n1. Refresh the page and try again\n2. Use a different browser (Chrome recommended)\n3. Disable browser extensions temporarily');
-                    
-                    hideRenderScreen();
-                }
-            }, 5000);
-        }
-    }, 15000);
-}
-function handlePhotopeaMessage(event) {
-    if (event.origin !== 'https://www.photopea.com') {
+    if (!newWindow) {
+        alert('❌ Please allow popups!\n\nYour browser blocked the Photopea editor.\n\nPlease enable popups for this site and try again.');
+        console.error('❌ Popup blocked');
         return;
     }
     
-    const data = event.data;
+    console.log('✅ Photopea window opened');
     
-    console.log('📨 Message from Photopea - Type:', typeof data, 'IsWaiting:', isWaitingForPNG);
-    
-    if (isWaitingForPNG && data instanceof ArrayBuffer && data.byteLength > 0) {
-        console.log('🎉 PNG ArrayBuffer received!');
-        console.log('📊 Size:', data.byteLength, 'bytes');
-        
-        isWaitingForPNG = false;
-        
-        updateRenderStatus('Finalizing download...');
-        
-        const renderBar = document.getElementById('render-bar');
-        const renderPerc = document.getElementById('render-perc');
-        
-        if (renderBar) renderBar.style.width = '100%';
-        if (renderPerc) renderPerc.textContent = '100%';
-        
-        console.log('✅ Progress bar completed');
-        
-        setTimeout(function() {
-            downloadPNG(data);
-            setTimeout(function() {
-                hideRenderScreen();
-            }, 1000);
-        }, 500);
-    } 
-    else if (typeof data === 'string') {
-        console.log('ℹ️ String message:', data);
-    }
-}
-
-function downloadPNG(arrayBuffer) {
-    console.log('💾 Starting PNG download');
-    
-    const blob = new Blob([arrayBuffer], { type: 'image/png' });
-    const url = URL.createObjectURL(blob);
-    
-    const logoName = document.getElementById('target-name').value.trim() || 'PLAYER';
-    const filename = logoName + '_Logo_S' + currentLogoStyle + '_C' + selectedCharacterId + '.png';
-    
-    console.log('📁 Filename:', filename);
-    console.log('🔗 Blob URL:', url);
-    
-    updateRenderStatus('Download starting...');
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    
-    console.log('✅ Download triggered');
-    
+    // Wait for Photopea to load, then send update commands
     setTimeout(function() {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        console.log('🧹 Cleanup completed');
-    }, 100);
-}
-
-function hideRenderScreen() {
-    console.log('🚫 Hiding render screen');
-    
-    const renderScreen = document.getElementById('render-screen');
-    if (renderScreen) {
-        renderScreen.style.display = 'none';
-    }
-    
-    const iframe = document.getElementById('photopea-iframe');
-    if (iframe) {
-        iframe.remove();
-        console.log('🗑️ Photopea iframe removed');
-    }
-    
-    window.removeEventListener('message', handlePhotopeaMessage);
-    console.log('👂 Message listener removed');
-    
-    isWaitingForPNG = false;
-}
-
-function updateRenderStatus(message) {
-    const renderStatus = document.getElementById('render-status');
-    if (renderStatus) {
-        renderStatus.textContent = message;
-        console.log('📝 Render status updated:', message);
-    }
+        console.log('📤 Sending update commands to Photopea...');
+        
+        // Escape special characters in text
+        const safeName = logoName.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/'/g, "\\'");
+        const safeNumber = logoNumber.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/'/g, "\\'");
+        const safeTitle = logoTitle.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/'/g, "\\'");
+        
+        // Build script
+        const updateScript = 
+            'app.loadFont("' + fontUrl + '");' +
+            'setTimeout(function() {' +
+            '  var doc = app.activeDocument;' +
+            '  try { doc.artLayers.getByName("LogoName").textItem.contents = "' + safeName + '"; } catch(e) { console.error("Name error:", e); }' +
+            '  try { doc.artLayers.getByName("LogoNumber").textItem.contents = "' + safeNumber + '"; } catch(e) { console.error("Number error:", e); }' +
+            '  try { doc.artLayers.getByName("LogoTitel").textItem.contents = "' + safeTitle + '"; } catch(e) { console.error("Title error:", e); }' +
+            '  alert("✅ Logo Updated Successfully!\\n\\nTo Download:\\n1. Click: File > Export As > PNG\\n2. Or Press: Ctrl+Shift+E (Windows) / Cmd+Shift+E (Mac)");' +
+            '}, 3000);';
+        
+        try {
+            newWindow.postMessage(updateScript, '*');
+            console.log('✅ Commands sent successfully');
+            
+            // Show instruction to user
+            alert('✅ Photopea Editor Opened!\n\n' +
+                  'Your logo is being updated automatically.\n\n' +
+                  'After the update message appears:\n' +
+                  '1. Click: File > Export As > PNG\n' +
+                  '2. Or Press: Ctrl+Shift+E\n\n' +
+                  'The logo will download to your computer.');
+            
+        } catch (error) {
+            console.error('❌ Error sending commands:', error);
+            alert('⚠️ Commands sent but there may be an error.\n\nPlease manually update the text layers in Photopea if needed.');
+        }
+        
+    }, 6000); // Wait 6 seconds for Photopea to fully load
 }
 
 // ========================
