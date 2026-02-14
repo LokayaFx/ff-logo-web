@@ -4,6 +4,7 @@
 let currentLogoStyle = 1;
 let selectedCharacterId = 1;
 let photopeaWindow = null;
+let isWaitingForPNG = false;
 
 console.log('✅ Editor.js loaded successfully');
 
@@ -273,10 +274,12 @@ function animateProgressBar(element, percElement, targetPercent, duration) {
 }
 
 // ========================
-// PHOTOPEA INTEGRATION
+// PHOTOPEA INTEGRATION - NEW METHOD
 // ========================
 function initializePhotopea(logoName, logoNumber, logoTitle) {
     console.log('🖼️ Initializing Photopea...');
+    
+    const psdUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s${currentLogoStyle}_c${selectedCharacterId}.psd`;
     
     let iframe = document.getElementById('photopea-iframe');
     if (!iframe) {
@@ -287,8 +290,9 @@ function initializePhotopea(logoName, logoNumber, logoTitle) {
         document.body.appendChild(iframe);
     }
     
-    iframe.src = 'https://www.photopea.com/';
-    console.log('🌐 Loading Photopea from:', iframe.src);
+    // Load Photopea with PSD file directly
+    iframe.src = `https://www.photopea.com/#${encodeURIComponent(psdUrl)}`;
+    console.log('🌐 Loading Photopea with PSD');
     
     iframe.onload = function() {
         console.log('✅ Photopea iframe loaded');
@@ -297,11 +301,13 @@ function initializePhotopea(logoName, logoNumber, logoTitle) {
         window.addEventListener('message', handlePhotopeaMessage);
         console.log('👂 Message listener added');
         
+        isWaitingForPNG = false;
+        
         setTimeout(() => {
             console.log('⏰ Executing Photopea script after delay');
-            updateRenderStatus('Loading PSD file...');
+            updateRenderStatus('Loading font and updating text...');
             executePhotopeaScript(logoName, logoNumber, logoTitle);
-        }, 2000);
+        }, 5000); // Longer delay for PSD to fully load
     };
     
     iframe.onerror = function() {
@@ -312,184 +318,53 @@ function initializePhotopea(logoName, logoNumber, logoTitle) {
 }
 
 function executePhotopeaScript(logoName, logoNumber, logoTitle) {
-    const psdUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s${currentLogoStyle}_c${selectedCharacterId}.psd`;
     const fontUrl = 'https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/Muro.otf';
     
-    console.log('📄 PSD URL:', psdUrl);
     console.log('🔤 Font URL:', fontUrl);
     
-    updateRenderStatus('Loading PSD and font...');
-    
-    // Method: Send commands sequentially with callbacks
-    let commandQueue = [
-        // Command 1: Open PSD
-        {
-            script: `app.open("${psdUrl}");`,
-            delay: 2000,
-            status: 'PSD loaded...'
-        },
-        // Command 2: Load Font
-        {
-            script: `app.loadFont("${fontUrl}");`,
-            delay: 2000,
-            status: 'Font loaded...'
-        },
-        // Command 3: Update and Export
-        {
-            script: `
-                var d = app.activeDocument;
-                try { d.artLayers.getByName("LogoName").textItem.contents = "${logoName.replace(/"/g, '\\"')}"; } catch(e) {}
-                try { d.artLayers.getByName("LogoNumber").textItem.contents = "${logoNumber.replace(/"/g, '\\"')}"; } catch(e) {}
-                try { d.artLayers.getByName("LogoTitel").textItem.contents = "${logoTitle.replace(/"/g, '\\"')}"; } catch(e) {}
-                d.saveToOE("png");
-            `,
-            delay: 0,
-            status: 'Exporting PNG...'
-        }
-    ];
-    
-    function executeNextCommand(index) {
-        if (index >= commandQueue.length) {
-            console.log('✅ All commands executed');
-            return;
-        }
+    // Send individual commands with delays
+    setTimeout(() => {
+        console.log('📤 Loading font...');
+        photopeaWindow.postMessage(`app.loadFont("${fontUrl}");`, '*');
         
-        const cmd = commandQueue[index];
-        console.log(`📤 Executing command ${index + 1}/${commandQueue.length}`);
-        updateRenderStatus(cmd.status);
-        
-        photopeaWindow.postMessage(cmd.script, '*');
-        
-        if (cmd.delay > 0) {
+        setTimeout(() => {
+            console.log('📤 Updating LogoName...');
+            photopeaWindow.postMessage(`app.activeDocument.artLayers.getByName("LogoName").textItem.contents = "${logoName.replace(/"/g, '\\"')}";`, '*');
+            
             setTimeout(() => {
-                executeNextCommand(index + 1);
-            }, cmd.delay);
-        }
-    }
-    
-    // Start executing commands
-    executeNextCommand(0);
+                console.log('📤 Updating LogoNumber...');
+                photopeaWindow.postMessage(`app.activeDocument.artLayers.getByName("LogoNumber").textItem.contents = "${logoNumber.replace(/"/g, '\\"')}";`, '*');
+                
+                setTimeout(() => {
+                    console.log('📤 Updating LogoTitel...');
+                    photopeaWindow.postMessage(`app.activeDocument.artLayers.getByName("LogoTitel").textItem.contents = "${logoTitle.replace(/"/g, '\\"')}";`, '*');
+                    
+                    setTimeout(() => {
+                        console.log('📤 Exporting PNG...');
+                        updateRenderStatus('Exporting PNG...');
+                        isWaitingForPNG = true;
+                        photopeaWindow.postMessage('app.activeDocument.saveToOE("png");', '*');
+                    }, 500);
+                }, 500);
+            }, 500);
+        }, 2000);
+    }, 500);
 }
 
 function handlePhotopeaMessage(event) {
-    console.log('📨 Message received from:', event.origin);
-    console.log('📦 Message type:', typeof event.data);
-    console.log('📦 Message data:', event.data);
-    
     if (event.origin !== 'https://www.photopea.com') {
-        console.log('⚠️ Message not from Photopea, ignoring');
         return;
     }
     
     const data = event.data;
     
-    if (data instanceof ArrayBuffer && data.byteLength > 0) {
+    console.log('📨 Message from Photopea - Type:', typeof data, 'IsWaiting:', isWaitingForPNG);
+    
+    // Only accept ArrayBuffer when we're waiting for PNG
+    if (isWaitingForPNG && data instanceof ArrayBuffer && data.byteLength > 0) {
         console.log('🎉 PNG ArrayBuffer received!');
         console.log('📊 Size:', data.byteLength, 'bytes');
         
-        updateRenderStatus('Finalizing download...');
+        isWaitingForPNG = false;
         
-        const renderBar = document.getElementById('render-bar');
-        const renderPerc = document.getElementById('render-perc');
-        
-        if (renderBar) renderBar.style.width = '100%';
-        if (renderPerc) renderPerc.textContent = '100%';
-        
-        console.log('✅ Progress bar completed');
-        
-        setTimeout(() => {
-            downloadPNG(data);
-            setTimeout(() => {
-                hideRenderScreen();
-            }, 1000);
-        }, 500);
-    } 
-    else if (typeof data === 'string' && data === 'done') {
-        console.log('ℹ️ Received "done" message - waiting for PNG ArrayBuffer...');
-    }
-    else {
-        console.log('ℹ️ Other message:', data);
-    }
-}
-
-function downloadPNG(arrayBuffer) {
-    console.log('💾 Starting PNG download');
-    
-    const blob = new Blob([arrayBuffer], { type: 'image/png' });
-    const url = URL.createObjectURL(blob);
-    
-    const logoName = document.getElementById('target-name').value.trim() || 'PLAYER';
-    const filename = `${logoName}_Logo_S${currentLogoStyle}_C${selectedCharacterId}.png`;
-    
-    console.log('📁 Filename:', filename);
-    console.log('🔗 Blob URL:', url);
-    
-    updateRenderStatus('Download starting...');
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    
-    console.log('✅ Download triggered');
-    
-    setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        console.log('🧹 Cleanup completed');
-    }, 100);
-}
-
-function hideRenderScreen() {
-    console.log('🚫 Hiding render screen');
-    
-    const renderScreen = document.getElementById('render-screen');
-    if (renderScreen) {
-        renderScreen.style.display = 'none';
-    }
-    
-    const iframe = document.getElementById('photopea-iframe');
-    if (iframe) {
-        iframe.remove();
-        console.log('🗑️ Photopea iframe removed');
-    }
-    
-    window.removeEventListener('message', handlePhotopeaMessage);
-    console.log('👂 Message listener removed');
-}
-
-function updateRenderStatus(message) {
-    const renderStatus = document.getElementById('render-status');
-    if (renderStatus) {
-        renderStatus.textContent = message;
-        console.log('📝 Render status updated:', message);
-    }
-}
-
-// ========================
-// SCROLL HEADER
-// ========================
-let lastScrollTop = 0;
-window.addEventListener('scroll', function() {
-    const slimHeader = document.getElementById('slim-header');
-    const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-    
-    if (currentScroll > 100) {
-        slimHeader.classList.add('visible');
-    } else {
-        slimHeader.classList.remove('visible');
-    }
-    
-    lastScrollTop = currentScroll;
-});
-
-// ========================
-// INITIALIZATION
-// ========================
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎬 DOM Content Loaded');
-    console.log('✅ Editor initialized successfully');
-});
-
-console.log('📜 All functions defined successfully');
+        updateRenderStatus('Finalizing download.
