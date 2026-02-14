@@ -5,19 +5,24 @@ let currentLogoStyle = 1;
 let selectedCharacterId = 1;
 let photopeaWindow = null;
 
+console.log('✅ Editor.js loaded successfully');
+
 // ========================
 // NAVIGATION & INITIALIZATION
 // ========================
 function revealEditor() {
-    // Copy name from home input to editor input
+    console.log('🚀 revealEditor() called');
+    
     const homeName = document.getElementById('home-name').value.trim();
+    console.log('📝 Home name:', homeName);
+    
     document.getElementById('target-name').value = homeName || 'PLAYER';
     
-    // Show editor section
     document.getElementById('home-section').style.display = 'none';
     document.getElementById('editor-section').style.display = 'block';
     
-    // Render character grid for current style
+    console.log('✅ Editor section revealed');
+    
     renderCharacters();
 }
 
@@ -25,54 +30,64 @@ function revealEditor() {
 // CHARACTER GRID RENDERING
 // ========================
 function renderCharacters() {
-    const charGrid = document.getElementById('char-grid');
-    charGrid.innerHTML = ''; // Clear existing grid
+    console.log('🎨 renderCharacters() called - Style:', currentLogoStyle);
     
-    // Generate 9 character thumbnails
+    const charGrid = document.getElementById('char-grid');
+    charGrid.innerHTML = '';
+    
     for (let i = 1; i <= 9; i++) {
         const charCard = document.createElement('div');
         charCard.className = 'char-card';
         
-        // Add selected class if this is the current character
         if (i === selectedCharacterId) {
             charCard.classList.add('selected');
+            console.log('✨ Character', i, 'is selected');
         }
         
         const img = document.createElement('img');
-        img.src = `./assets/logos/s${currentLogoStyle}_c${i}.png`;
+        const imgPath = `./assets/logos/s${currentLogoStyle}_c${i}.png`;
+        img.src = imgPath;
         img.alt = `Character ${i}`;
         img.loading = 'lazy';
         
-        // Handle image load errors
+        console.log('🖼️ Loading image:', imgPath);
+        
         img.onerror = function() {
+            console.error('❌ Failed to load image:', imgPath);
             this.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23333" width="200" height="200"/%3E%3Ctext x="50%25" y="50%25" fill="%23666" text-anchor="middle" dy=".3em" font-family="Arial"%3ENo Image%3C/text%3E%3C/svg%3E';
+        };
+        
+        img.onload = function() {
+            console.log('✅ Image loaded successfully:', imgPath);
         };
         
         charCard.appendChild(img);
         
-        // Click handler for character selection
         charCard.addEventListener('click', () => {
+            console.log('👆 Character clicked:', i);
             selectedCharacterId = i;
-            renderCharacters(); // Re-render to update selection
+            renderCharacters();
         });
         
         charGrid.appendChild(charCard);
     }
+    
+    console.log('✅ Character grid rendered with 9 characters');
 }
 
 // ========================
 // STYLE SELECTION
 // ========================
 function selectStyle(styleNumber) {
+    console.log('🎨 Style selected:', styleNumber);
+    
     currentLogoStyle = styleNumber;
     
-    // Update active state on style buttons
     document.querySelectorAll('.style-btn').forEach(btn => {
         btn.classList.remove('active');
     });
     event.target.classList.add('active');
     
-    // Re-render characters for new style
     renderCharacters();
 }
 
@@ -80,25 +95,34 @@ function selectStyle(styleNumber) {
 // PHOTOPEA RENDERING LOGIC
 // ========================
 function generateLogo() {
-    // Get user inputs
+    console.log('🎯 generateLogo() called');
+    console.log('📊 Current State:', {
+        style: currentLogoStyle,
+        character: selectedCharacterId
+    });
+    
     const logoName = document.getElementById('target-name').value.trim() || 'PLAYER';
     const logoNumber = document.getElementById('target-number').value.trim() || '99';
     const logoTitle = document.getElementById('target-title').value.trim() || 'LEGEND';
     
-    // Show render screen
+    console.log('📝 Logo Details:', { logoName, logoNumber, logoTitle });
+    
     const renderScreen = document.getElementById('render-screen');
     const renderBar = document.getElementById('render-bar');
+    
     renderScreen.style.display = 'flex';
     renderBar.style.width = '0%';
     
-    // Animate progress bar to 95%
+    console.log('✅ Render screen shown');
+    
     animateProgressBar(renderBar, 95, 2000);
     
-    // Initialize Photopea in hidden iframe
     initializePhotopea(logoName, logoNumber, logoTitle);
 }
 
 function animateProgressBar(element, targetPercent, duration) {
+    console.log('📊 Progress bar animation started');
+    
     const startTime = performance.now();
     const startPercent = 0;
     
@@ -106,7 +130,6 @@ function animateProgressBar(element, targetPercent, duration) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
-        // Easing function for smooth animation
         const easeProgress = progress < 0.5 
             ? 2 * progress * progress 
             : 1 - Math.pow(-2 * progress + 2, 2) / 2;
@@ -116,6 +139,8 @@ function animateProgressBar(element, targetPercent, duration) {
         
         if (progress < 1) {
             requestAnimationFrame(update);
+        } else {
+            console.log('✅ Progress bar reached', targetPercent + '%');
         }
     }
     
@@ -123,29 +148,35 @@ function animateProgressBar(element, targetPercent, duration) {
 }
 
 function initializePhotopea(logoName, logoNumber, logoTitle) {
-    // Create hidden iframe for Photopea
+    console.log('🖼️ Initializing Photopea...');
+    
     let iframe = document.getElementById('photopea-iframe');
     if (!iframe) {
+        console.log('📦 Creating new Photopea iframe');
         iframe = document.createElement('iframe');
         iframe.id = 'photopea-iframe';
         iframe.style.display = 'none';
         document.body.appendChild(iframe);
     }
     
-    // Load Photopea
     iframe.src = 'https://www.photopea.com/';
+    console.log('🌐 Loading Photopea from:', iframe.src);
     
-    // Wait for Photopea to load
     iframe.onload = function() {
+        console.log('✅ Photopea iframe loaded');
         photopeaWindow = iframe.contentWindow;
         
-        // Set up message listener for Photopea responses
         window.addEventListener('message', handlePhotopeaMessage);
+        console.log('👂 Message listener added');
         
-        // Small delay to ensure Photopea is fully initialized
         setTimeout(() => {
+            console.log('⏰ Executing Photopea script after delay');
             executePhotopeaScript(logoName, logoNumber, logoTitle);
         }, 1000);
+    };
+    
+    iframe.onerror = function() {
+        console.error('❌ Failed to load Photopea iframe');
     };
 }
 
@@ -153,111 +184,123 @@ function executePhotopeaScript(logoName, logoNumber, logoTitle) {
     const psdUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s${currentLogoStyle}_c${selectedCharacterId}.psd`;
     const fontUrl = 'https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/Muro.otf';
     
+    console.log('📄 PSD URL:', psdUrl);
+    console.log('🔤 Font URL:', fontUrl);
+    
     const script = `
-        // Load the PSD file
-        app.echoToOE = true;
+        app.echoToOE = false;
+        console.log('🎨 Photopea script started');
         
-        async function processLogo() {
-            try {
-                // Load PSD from URL
-                await app.open("${psdUrl}");
-                
-                // Load custom font
-                await app.loadFont("${fontUrl}");
-                
-                // Wait for fonts to be loaded
-                let fontCheckAttempts = 0;
-                while (!app.fontsLoaded && fontCheckAttempts < 50) {
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    fontCheckAttempts++;
+        function waitForFonts(callback, maxAttempts) {
+            var attempts = 0;
+            var interval = setInterval(function() {
+                attempts++;
+                console.log('⏳ Waiting for fonts... Attempt:', attempts);
+                if (app.fontsLoaded || attempts >= maxAttempts) {
+                    clearInterval(interval);
+                    console.log('✅ Font check complete. Loaded:', app.fontsLoaded);
+                    callback(app.fontsLoaded);
                 }
-                
-                if (!app.fontsLoaded) {
-                    throw new Error("Fonts failed to load");
-                }
-                
-                // Update text layers
-                const doc = app.activeDocument;
-                
-                // Update LogoName layer
-                try {
-                    const nameLayer = doc.layers.getByName("LogoName");
-                    if (nameLayer && nameLayer.kind === "text") {
-                        nameLayer.textItem.contents = "${logoName.replace(/"/g, '\\"')}";
-                    }
-                } catch(e) {
-                    console.error("Error updating LogoName:", e);
-                }
-                
-                // Update LogoNumber layer
-                try {
-                    const numberLayer = doc.layers.getByName("LogoNumber");
-                    if (numberLayer && numberLayer.kind === "text") {
-                        numberLayer.textItem.contents = "${logoNumber.replace(/"/g, '\\"')}";
-                    }
-                } catch(e) {
-                    console.error("Error updating LogoNumber:", e);
-                }
-                
-                // Update LogoTitel layer
-                try {
-                    const titleLayer = doc.layers.getByName("LogoTitel");
-                    if (titleLayer && titleLayer.kind === "text") {
-                        titleLayer.textItem.contents = "${logoTitle.replace(/"/g, '\\"')}";
-                    }
-                } catch(e) {
-                    console.error("Error updating LogoTitel:", e);
-                }
-                
-                // Final check before export
-                if (app.fontsLoaded) {
-                    // Export as PNG
-                    await doc.saveToOE("png");
-                } else {
-                    throw new Error("Fonts not loaded before export");
-                }
-                
-            } catch(error) {
-                alert("Error: " + error.message);
-            }
+            }, 100);
         }
         
-        processLogo();
+        console.log('📂 Opening PSD file...');
+        app.open("${psdUrl}");
+        
+        console.log('🔤 Loading font...');
+        app.loadFont("${fontUrl}");
+        
+        waitForFonts(function(loaded) {
+            if (loaded) {
+                console.log('✅ Fonts loaded successfully');
+                var doc = app.activeDocument;
+                console.log('📄 Document:', doc.name);
+                
+                try {
+                    var nameLayer = doc.artLayers.getByName("LogoName");
+                    if (nameLayer) {
+                        nameLayer.textItem.contents = "${logoName.replace(/"/g, '\\"')}";
+                        console.log('✅ LogoName updated');
+                    }
+                } catch(e) {
+                    console.error('❌ Error updating LogoName:', e.message);
+                }
+                
+                try {
+                    var numberLayer = doc.artLayers.getByName("LogoNumber");
+                    if (numberLayer) {
+                        numberLayer.textItem.contents = "${logoNumber.replace(/"/g, '\\"')}";
+                        console.log('✅ LogoNumber updated');
+                    }
+                } catch(e) {
+                    console.error('❌ Error updating LogoNumber:', e.message);
+                }
+                
+                try {
+                    var titleLayer = doc.artLayers.getByName("LogoTitel");
+                    if (titleLayer) {
+                        titleLayer.textItem.contents = "${logoTitle.replace(/"/g, '\\"')}";
+                        console.log('✅ LogoTitel updated');
+                    }
+                } catch(e) {
+                    console.error('❌ Error updating LogoTitel:', e.message);
+                }
+                
+                console.log('💾 Exporting PNG...');
+                app.activeDocument.saveToOE("png");
+                console.log('✅ Export command sent');
+                
+            } else {
+                console.error('❌ Font loading timeout');
+                alert("Font loading failed");
+            }
+        }, 50);
     `;
     
-    // Send script to Photopea
+    console.log('📤 Sending script to Photopea');
     photopeaWindow.postMessage(script, '*');
 }
 
 function handlePhotopeaMessage(event) {
-    // Check if message is from Photopea
-    if (event.origin !== 'https://www.photopea.com') return;
+    console.log('📨 Message received from:', event.origin);
+    console.log('📦 Message type:', typeof event.data);
+    console.log('📦 Message data:', event.data);
+    
+    if (event.origin !== 'https://www.photopea.com') {
+        console.log('⚠️ Message not from Photopea, ignoring');
+        return;
+    }
     
     const data = event.data;
     
-    // Check if this is the PNG ArrayBuffer
     if (data instanceof ArrayBuffer) {
-        // Complete progress bar
+        console.log('🎉 PNG ArrayBuffer received!');
+        console.log('📊 Size:', data.byteLength, 'bytes');
+        
         const renderBar = document.getElementById('render-bar');
         renderBar.style.width = '100%';
+        console.log('✅ Progress bar completed');
         
-        // Convert ArrayBuffer to Blob and download
         setTimeout(() => {
             downloadPNG(data);
             hideRenderScreen();
         }, 500);
-        
-        // Clean up message listener
-        window.removeEventListener('message', handlePhotopeaMessage);
+    } else {
+        console.log('ℹ️ Non-ArrayBuffer message:', data);
     }
 }
 
 function downloadPNG(arrayBuffer) {
+    console.log('💾 Starting PNG download');
+    
     const blob = new Blob([arrayBuffer], { type: 'image/png' });
     const url = URL.createObjectURL(blob);
     
     const logoName = document.getElementById('target-name').value.trim() || 'PLAYER';
     const filename = `${logoName}_Logo_Style${currentLogoStyle}_Char${selectedCharacterId}.png`;
+    
+    console.log('📁 Filename:', filename);
+    console.log('🔗 Blob URL:', url);
     
     const a = document.createElement('a');
     a.href = url;
@@ -265,31 +308,42 @@ function downloadPNG(arrayBuffer) {
     document.body.appendChild(a);
     a.click();
     
-    // Cleanup
+    console.log('✅ Download triggered');
+    
     setTimeout(() => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+        console.log('🧹 Cleanup completed');
     }, 100);
 }
 
 function hideRenderScreen() {
+    console.log('🚫 Hiding render screen');
+    
     const renderScreen = document.getElementById('render-screen');
     renderScreen.style.display = 'none';
     
-    // Remove Photopea iframe
     const iframe = document.getElementById('photopea-iframe');
     if (iframe) {
         iframe.remove();
+        console.log('🗑️ Photopea iframe removed');
     }
+    
+    window.removeEventListener('message', handlePhotopeaMessage);
+    console.log('👂 Message listener removed');
 }
 
 // ========================
 // INITIALIZATION
 // ========================
 document.addEventListener('DOMContentLoaded', function() {
-    // Set default active style button
+    console.log('🎬 DOM Content Loaded');
+    
     const defaultStyleBtn = document.querySelector('.style-btn[onclick*="selectStyle(1)"]');
     if (defaultStyleBtn) {
         defaultStyleBtn.classList.add('active');
+        console.log('✅ Default style button activated');
     }
 });
+
+console.log('📜 All functions defined successfully');
