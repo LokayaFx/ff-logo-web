@@ -55,7 +55,6 @@ function revealEditor() {
     
     console.log('✅ Editor section revealed');
     
-    // Load default character
     updateMainLogoImage();
     renderCharacters();
 }
@@ -66,7 +65,7 @@ function revealEditor() {
 function updateCurrentLogo(styleNumber) {
     console.log('🎨 updateCurrentLogo() called - Style:', styleNumber);
     currentLogoStyle = styleNumber;
-    selectedCharacterId = 1; // Reset to character 1
+    selectedCharacterId = 1;
     updateMainLogoImage();
     console.log('✅ Logo style updated');
 }
@@ -79,7 +78,6 @@ function updateMainLogoImage() {
         mainLogo.src = newSrc;
         console.log('✅ Main logo updated:', newSrc);
         
-        // Also update render preview
         const renderPreview = document.getElementById('render-preview');
         if (renderPreview) {
             renderPreview.src = newSrc;
@@ -126,12 +124,11 @@ function renderCharacters() {
         
         charCard.appendChild(img);
         
-        // Click handler for character selection
         charCard.addEventListener('click', () => {
             console.log('👆 Character clicked:', i);
             selectedCharacterId = i;
             updateMainLogoImage();
-            renderCharacters(); // Re-render to update selection
+            renderCharacters();
         });
         
         charGrid.appendChild(charCard);
@@ -155,7 +152,6 @@ function toggleModal(modalId, show) {
     }
     
     if (show) {
-        // Close all other modals first
         document.querySelectorAll('.custom-modal').forEach(m => {
             m.classList.remove('modal-active');
         });
@@ -165,7 +161,6 @@ function toggleModal(modalId, show) {
             modal.classList.add('modal-active');
         }, 10);
         
-        // Render characters if opening char-modal
         if (modalId === 'char-modal') {
             renderCharacters();
         }
@@ -306,7 +301,7 @@ function initializePhotopea(logoName, logoNumber, logoTitle) {
             console.log('⏰ Executing Photopea script after delay');
             updateRenderStatus('Loading PSD file...');
             executePhotopeaScript(logoName, logoNumber, logoTitle);
-        }, 1500);
+        }, 2000);
     };
     
     iframe.onerror = function() {
@@ -325,55 +320,38 @@ function executePhotopeaScript(logoName, logoNumber, logoTitle) {
     
     updateRenderStatus('Loading custom font...');
     
-    const script = `
-        app.echoToOE = false;
+    // Split into multiple commands for better reliability
+    setTimeout(() => {
+        // Command 1: Open PSD
+        photopeaWindow.postMessage('app.open("' + psdUrl + '");', '*');
+        console.log('📤 Sent: Open PSD');
         
-        function waitForFonts(callback, maxAttempts) {
-            var attempts = 0;
-            var interval = setInterval(function() {
-                attempts++;
-                if (app.fontsLoaded || attempts >= maxAttempts) {
-                    clearInterval(interval);
-                    callback(app.fontsLoaded);
-                }
-            }, 100);
-        }
-        
-        app.open("${psdUrl}");
-        app.loadFont("${fontUrl}");
-        
-        waitForFonts(function(loaded) {
-            if (loaded) {
-                var doc = app.activeDocument;
+        setTimeout(() => {
+            // Command 2: Load Font
+            photopeaWindow.postMessage('app.loadFont("' + fontUrl + '");', '*');
+            console.log('📤 Sent: Load Font');
+            updateRenderStatus('Processing your logo...');
+            
+            setTimeout(() => {
+                // Command 3: Update layers and export
+                const updateScript = 
+                    'var doc = app.activeDocument;' +
+                    'try { doc.artLayers.getByName("LogoName").textItem.contents = "' + logoName.replace(/"/g, '\\"') + '"; } catch(e) {}' +
+                    'try { doc.artLayers.getByName("LogoNumber").textItem.contents = "' + logoNumber.replace(/"/g, '\\"') + '"; } catch(e) {}' +
+                    'try { doc.artLayers.getByName("LogoTitel").textItem.contents = "' + logoTitle.replace(/"/g, '\\"') + '"; } catch(e) {}' +
+                    'app.activeDocument.saveToOE("png");';
                 
-                try {
-                    var nameLayer = doc.artLayers.getByName("LogoName");
-                    if (nameLayer) nameLayer.textItem.contents = "${logoName.replace(/"/g, '\\"')}";
-                } catch(e) {}
-                
-                try {
-                    var numberLayer = doc.artLayers.getByName("LogoNumber");
-                    if (numberLayer) numberLayer.textItem.contents = "${logoNumber.replace(/"/g, '\\"')}";
-                } catch(e) {}
-                
-                try {
-                    var titleLayer = doc.artLayers.getByName("LogoTitel");
-                    if (titleLayer) titleLayer.textItem.contents = "${logoTitle.replace(/"/g, '\\"')}";
-                } catch(e) {}
-                
-                app.activeDocument.saveToOE("png");
-            }
-        }, 50);
-    `;
-    
-    console.log('📤 Sending script to Photopea');
-    updateRenderStatus('Processing your logo...');
-    photopeaWindow.postMessage(script, '*');
+                photopeaWindow.postMessage(updateScript, '*');
+                console.log('📤 Sent: Update layers and export');
+            }, 2000);
+        }, 2000);
+    }, 500);
 }
 
 function handlePhotopeaMessage(event) {
     console.log('📨 Message received from:', event.origin);
     console.log('📦 Message type:', typeof event.data);
+    console.log('📦 Message data:', event.data);
     
     if (event.origin !== 'https://www.photopea.com') {
         console.log('⚠️ Message not from Photopea, ignoring');
@@ -382,7 +360,7 @@ function handlePhotopeaMessage(event) {
     
     const data = event.data;
     
-    if (data instanceof ArrayBuffer) {
+    if (data instanceof ArrayBuffer && data.byteLength > 0) {
         console.log('🎉 PNG ArrayBuffer received!');
         console.log('📊 Size:', data.byteLength, 'bytes');
         
@@ -402,8 +380,12 @@ function handlePhotopeaMessage(event) {
                 hideRenderScreen();
             }, 1000);
         }, 500);
-    } else {
-        console.log('ℹ️ Non-ArrayBuffer message:', data);
+    } 
+    else if (typeof data === 'string' && data === 'done') {
+        console.log('ℹ️ Received "done" message - waiting for PNG ArrayBuffer...');
+    }
+    else {
+        console.log('ℹ️ Other message:', data);
     }
 }
 
