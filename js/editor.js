@@ -1,4 +1,4 @@
-l// 1. මුලින්ම පාවිච්චි කරන Variables
+// 1. මුලින්ම පාවිච්චි කරන Variables
 window.currentLogoStyle = 1;
 window.selectedCharacterId = 1;
 
