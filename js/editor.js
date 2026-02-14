@@ -75,7 +75,7 @@ function updateMainLogoImage() {
     console.log('🖼️ updateMainLogoImage() - Style:', currentLogoStyle, 'Char:', selectedCharacterId);
     const mainLogo = document.getElementById('main-logo');
     if (mainLogo) {
-        const newSrc = `./assets/logos/s${currentLogoStyle}_c${selectedCharacterId}.png`;
+        const newSrc = './assets/logos/s' + currentLogoStyle + '_c' + selectedCharacterId + '.png';
         mainLogo.src = newSrc;
         console.log('✅ Main logo updated:', newSrc);
         
@@ -110,9 +110,9 @@ function renderCharacters() {
         }
         
         const img = document.createElement('img');
-        const imgPath = `./assets/logos/s${currentLogoStyle}_c${i}.png`;
+        const imgPath = './assets/logos/s' + currentLogoStyle + '_c' + i + '.png';
         img.src = imgPath;
-        img.alt = `Character ${i}`;
+        img.alt = 'Character ' + i;
         img.className = 'w-full h-full object-cover';
         
         img.onerror = function() {
@@ -125,12 +125,14 @@ function renderCharacters() {
         
         charCard.appendChild(img);
         
-        charCard.addEventListener('click', () => {
-            console.log('👆 Character clicked:', i);
-            selectedCharacterId = i;
-            updateMainLogoImage();
-            renderCharacters();
-        });
+        charCard.addEventListener('click', (function(charNum) {
+            return function() {
+                console.log('👆 Character clicked:', charNum);
+                selectedCharacterId = charNum;
+                updateMainLogoImage();
+                renderCharacters();
+            };
+        })(i));
         
         charGrid.appendChild(charCard);
     }
@@ -153,12 +155,12 @@ function toggleModal(modalId, show) {
     }
     
     if (show) {
-        document.querySelectorAll('.custom-modal').forEach(m => {
+        document.querySelectorAll('.custom-modal').forEach(function(m) {
             m.classList.remove('modal-active');
         });
         
         overlay.style.display = 'block';
-        setTimeout(() => {
+        setTimeout(function() {
             modal.classList.add('modal-active');
         }, 10);
         
@@ -169,7 +171,7 @@ function toggleModal(modalId, show) {
         console.log('✅ Modal shown:', modalId);
     } else {
         modal.classList.remove('modal-active');
-        setTimeout(() => {
+        setTimeout(function() {
             overlay.style.display = 'none';
         }, 400);
         console.log('✅ Modal hidden:', modalId);
@@ -179,13 +181,13 @@ function toggleModal(modalId, show) {
 function closeAllModals() {
     console.log('🚫 closeAllModals() called');
     
-    document.querySelectorAll('.custom-modal').forEach(modal => {
+    document.querySelectorAll('.custom-modal').forEach(function(modal) {
         modal.classList.remove('modal-active');
     });
     
     const overlay = document.getElementById('modal-overlay');
     if (overlay) {
-        setTimeout(() => {
+        setTimeout(function() {
             overlay.style.display = 'none';
         }, 400);
     }
@@ -217,7 +219,7 @@ function generateFinalLogo() {
     const logoNumber = targetNumberInput.value.trim() || '99';
     const logoTitle = targetTitleInput.value.trim() || 'LEGEND';
     
-    console.log('📝 Logo Details:', { logoName, logoNumber, logoTitle });
+    console.log('📝 Logo Details:', { logoName: logoName, logoNumber: logoNumber, logoTitle: logoTitle });
     
     const renderScreen = document.getElementById('render-screen');
     const renderBar = document.getElementById('render-bar');
@@ -274,12 +276,12 @@ function animateProgressBar(element, percElement, targetPercent, duration) {
 }
 
 // ========================
-// PHOTOPEA INTEGRATION - NEW METHOD
+// PHOTOPEA INTEGRATION
 // ========================
 function initializePhotopea(logoName, logoNumber, logoTitle) {
     console.log('🖼️ Initializing Photopea...');
     
-    const psdUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s${currentLogoStyle}_c${selectedCharacterId}.psd`;
+    const psdUrl = 'https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s' + currentLogoStyle + '_c' + selectedCharacterId + '.psd';
     
     let iframe = document.getElementById('photopea-iframe');
     if (!iframe) {
@@ -290,8 +292,7 @@ function initializePhotopea(logoName, logoNumber, logoTitle) {
         document.body.appendChild(iframe);
     }
     
-    // Load Photopea with PSD file directly
-    iframe.src = `https://www.photopea.com/#${encodeURIComponent(psdUrl)}`;
+    iframe.src = 'https://www.photopea.com/#' + encodeURIComponent(psdUrl);
     console.log('🌐 Loading Photopea with PSD');
     
     iframe.onload = function() {
@@ -303,11 +304,11 @@ function initializePhotopea(logoName, logoNumber, logoTitle) {
         
         isWaitingForPNG = false;
         
-        setTimeout(() => {
+        setTimeout(function() {
             console.log('⏰ Executing Photopea script after delay');
             updateRenderStatus('Loading font and updating text...');
             executePhotopeaScript(logoName, logoNumber, logoTitle);
-        }, 5000); // Longer delay for PSD to fully load
+        }, 5000);
     };
     
     iframe.onerror = function() {
@@ -322,24 +323,23 @@ function executePhotopeaScript(logoName, logoNumber, logoTitle) {
     
     console.log('🔤 Font URL:', fontUrl);
     
-    // Send individual commands with delays
-    setTimeout(() => {
+    setTimeout(function() {
         console.log('📤 Loading font...');
-        photopeaWindow.postMessage(`app.loadFont("${fontUrl}");`, '*');
+        photopeaWindow.postMessage('app.loadFont("' + fontUrl + '");', '*');
         
-        setTimeout(() => {
+        setTimeout(function() {
             console.log('📤 Updating LogoName...');
-            photopeaWindow.postMessage(`app.activeDocument.artLayers.getByName("LogoName").textItem.contents = "${logoName.replace(/"/g, '\\"')}";`, '*');
+            photopeaWindow.postMessage('app.activeDocument.artLayers.getByName("LogoName").textItem.contents = "' + logoName.replace(/"/g, '\\"') + '";', '*');
             
-            setTimeout(() => {
+            setTimeout(function() {
                 console.log('📤 Updating LogoNumber...');
-                photopeaWindow.postMessage(`app.activeDocument.artLayers.getByName("LogoNumber").textItem.contents = "${logoNumber.replace(/"/g, '\\"')}";`, '*');
+                photopeaWindow.postMessage('app.activeDocument.artLayers.getByName("LogoNumber").textItem.contents = "' + logoNumber.replace(/"/g, '\\"') + '";', '*');
                 
-                setTimeout(() => {
+                setTimeout(function() {
                     console.log('📤 Updating LogoTitel...');
-                    photopeaWindow.postMessage(`app.activeDocument.artLayers.getByName("LogoTitel").textItem.contents = "${logoTitle.replace(/"/g, '\\"')}";`, '*');
+                    photopeaWindow.postMessage('app.activeDocument.artLayers.getByName("LogoTitel").textItem.contents = "' + logoTitle.replace(/"/g, '\\"') + '";', '*');
                     
-                    setTimeout(() => {
+                    setTimeout(function() {
                         console.log('📤 Exporting PNG...');
                         updateRenderStatus('Exporting PNG...');
                         isWaitingForPNG = true;
@@ -360,11 +360,116 @@ function handlePhotopeaMessage(event) {
     
     console.log('📨 Message from Photopea - Type:', typeof data, 'IsWaiting:', isWaitingForPNG);
     
-    // Only accept ArrayBuffer when we're waiting for PNG
     if (isWaitingForPNG && data instanceof ArrayBuffer && data.byteLength > 0) {
         console.log('🎉 PNG ArrayBuffer received!');
         console.log('📊 Size:', data.byteLength, 'bytes');
         
         isWaitingForPNG = false;
         
-        updateRenderStatus('Finalizing download.
+        updateRenderStatus('Finalizing download...');
+        
+        const renderBar = document.getElementById('render-bar');
+        const renderPerc = document.getElementById('render-perc');
+        
+        if (renderBar) renderBar.style.width = '100%';
+        if (renderPerc) renderPerc.textContent = '100%';
+        
+        console.log('✅ Progress bar completed');
+        
+        setTimeout(function() {
+            downloadPNG(data);
+            setTimeout(function() {
+                hideRenderScreen();
+            }, 1000);
+        }, 500);
+    } 
+    else if (typeof data === 'string') {
+        console.log('ℹ️ String message:', data);
+    }
+}
+
+function downloadPNG(arrayBuffer) {
+    console.log('💾 Starting PNG download');
+    
+    const blob = new Blob([arrayBuffer], { type: 'image/png' });
+    const url = URL.createObjectURL(blob);
+    
+    const logoName = document.getElementById('target-name').value.trim() || 'PLAYER';
+    const filename = logoName + '_Logo_S' + currentLogoStyle + '_C' + selectedCharacterId + '.png';
+    
+    console.log('📁 Filename:', filename);
+    console.log('🔗 Blob URL:', url);
+    
+    updateRenderStatus('Download starting...');
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    
+    console.log('✅ Download triggered');
+    
+    setTimeout(function() {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        console.log('🧹 Cleanup completed');
+    }, 100);
+}
+
+function hideRenderScreen() {
+    console.log('🚫 Hiding render screen');
+    
+    const renderScreen = document.getElementById('render-screen');
+    if (renderScreen) {
+        renderScreen.style.display = 'none';
+    }
+    
+    const iframe = document.getElementById('photopea-iframe');
+    if (iframe) {
+        iframe.remove();
+        console.log('🗑️ Photopea iframe removed');
+    }
+    
+    window.removeEventListener('message', handlePhotopeaMessage);
+    console.log('👂 Message listener removed');
+    
+    isWaitingForPNG = false;
+}
+
+function updateRenderStatus(message) {
+    const renderStatus = document.getElementById('render-status');
+    if (renderStatus) {
+        renderStatus.textContent = message;
+        console.log('📝 Render status updated:', message);
+    }
+}
+
+// ========================
+// SCROLL HEADER
+// ========================
+let lastScrollTop = 0;
+window.addEventListener('scroll', function() {
+    const slimHeader = document.getElementById('slim-header');
+    if (slimHeader) {
+        const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+        
+        if (currentScroll > 100) {
+            slimHeader.classList.add('visible');
+        } else {
+            slimHeader.classList.remove('visible');
+        }
+        
+        lastScrollTop = currentScroll;
+    }
+});
+
+// ========================
+// INITIALIZATION
+// ========================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎬 DOM Content Loaded');
+    console.log('✅ Editor initialized successfully');
+});
+
+console.log('📜 All functions defined successfully');
