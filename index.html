@@ -60,50 +60,22 @@
         </main>
     </section>
 
+    <section id="editor-section" class="hidden-section bg-premium-section flex flex-col items-center pt-10 pb-20 px-6">
+        <div class="relative w-full max-w-[320px] aspect-square logo-display mb-8">
+            <img id="main-logo" src="./assets/logos/s1_c1.png" class="w-full h-full object-cover rounded-3xl shadow-2xl">
+        </div>
+
         <div class="w-full max-w-md space-y-3 relative z-10">
             <h2 class="text-xl font-bold text-center mb-6 text-white/90">Customize Your Logo</h2>
             <input id="target-name" type="text" placeholder="Enter your name" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
             <input id="target-number" type="text" placeholder="Your Whatsapp number" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
-            <input id="target-title" type="text" placeholder="Under name TITEL" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
+            <input id="target-title" type="text" placeholder="Under name TITLE" class="premium-input w-full px-6 py-4 rounded-2xl focus:outline-none">
             
             <button onclick="generateFinalLogo()" class="w-full py-5 mt-4 rounded-2xl bg-[#6638A6] text-white font-bold tracking-widest uppercase shadow-2xl active:scale-95 transition-transform">
                 Download Logo
             </button>
         </div>
     </section>
-
-    <div id="modal-overlay" class="modal-overlay" onclick="closeAllModals()"></div>
-
-    <div id="logo-modal" class="custom-modal fixed bottom-0 left-0 right-0 bg-[#121217] rounded-t-[40px] z-[101] p-8 border-t border-white/5">
-        <div class="w-12 h-1 bg-white/10 rounded-full mx-auto mb-6"></div>
-        <h3 class="text-center font-bold mb-6 uppercase text-white/60 tracking-widest text-sm">Select Your Logo Style</h3>
-        <div class="grid grid-cols-3 gap-3 mb-8">
-            <div onclick="updateCurrentLogo(1); toggleModal('logo-modal', false);" class="aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-transform">
-                <img src="./assets/logos/s1_c1.png" class="w-full h-full object-cover">
-            </div>
-            <div onclick="updateCurrentLogo(2); toggleModal('logo-modal', false);" class="aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-transform">
-                <img src="./assets/logos/s2_c1.png" class="w-full h-full object-cover">
-            </div>
-            <div onclick="updateCurrentLogo(3); toggleModal('logo-modal', false);" class="aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-transform">
-                <img src="./assets/logos/s3_c1.png" class="w-full h-full object-cover">
-            </div>
-        </div>
-        <div class="space-y-3">
-            <button onclick="closeAllModals()" class="w-full py-4 bg-[#6638A6] rounded-2xl font-bold uppercase text-xs tracking-widest shadow-lg">Done</button>
-            <button onclick="toggleModal('char-modal', true)" class="w-full py-4 bg-white/5 border border-white/10 rounded-2xl font-bold uppercase text-xs tracking-widest">Change Character</button>
-            <button onclick="closeAllModals()" class="w-full py-4 text-white/30 font-bold uppercase text-xs tracking-widest">Cancel</button>
-        </div>
-    </div>
-
-    <div id="char-modal" class="custom-modal fixed bottom-0 left-0 right-0 bg-[#0d0d12] rounded-t-[40px] z-[110] p-8 border-t border-purple-500/20">
-        <div class="w-12 h-1 bg-purple-500/20 rounded-full mx-auto mb-6"></div>
-        <h3 id="char-title" class="text-center font-bold mb-6 text-purple-400 uppercase tracking-widest text-sm">Select Character</h3>
-        <div id="char-grid" class="grid grid-cols-3 gap-3 max-h-[40vh] overflow-y-auto mb-8 p-1"></div>
-        <div class="space-y-3">
-            <button onclick="closeAllModals()" class="w-full py-5 bg-[#6638A6] rounded-2xl font-bold uppercase text-xs tracking-widest shadow-xl">Done</button>
-            <button onclick="toggleModal('logo-modal', true)" class="w-full py-4 text-white/30 font-bold uppercase text-xs tracking-widest">Back</button>
-        </div>
-    </div>
 
     <script src="js/editor.js"></script>
     <script type="module" src="js/auth.js"></script>
@@ -131,5 +103,4 @@
     </div>
     
 </body>
-    </html>
-    
+</html>
