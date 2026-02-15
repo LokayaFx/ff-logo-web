@@ -23,7 +23,7 @@ Lokaya gFx is a sleek, high-performance web application that allows users to cre
 
 1.  **Clone the Repository:**
     ```bash
-    git clone [https://github.com/your-username/lokaya-gfx.git](https://github.com/your-username/lokaya-gfx.git)
+    git clone [https://github.com/your-username/lokayafx.git](https://github.com/your-username/lokayafx.git)
     ```
 2.  **Open the Project:**
     Simply open the `index.html` file in any modern web browser.
@@ -38,8 +38,7 @@ Lokaya gFx is a sleek, high-performance web application that allows users to cre
 
 | Landing Page | Character Selection |
 | :--- | :--- |
-| ![Landing](https://via.placeholder.com/400x200?text=Landing+Page+Preview) | ![Characters](https://via.placeholder.com/400x200?text=Character+Grid+Preview) |
-
+| ![character](https://via.placeholder.com/400x200?text=Landing+Page+Preview) 
 ## 👨‍💻 Author
 
 * **Your Name**
