@@ -36,9 +36,9 @@ Lokaya gFx is a sleek, high-performance web application that allows users to cre
 
 ## 📸 Screenshots
 
-| Landing Page | Character Selection |
+| Landing Page|
 | :--- | :--- |
-| ![character](https://via.placeholder.com/400x200?text=Landing+Page+Preview) 
+| ![logo]([https://via.placeholder.com/400x200?text=Landing+Page+Preview](https://github.com/LokayaFx/ff-logo-web/blob/main/assets/logos/s1_c1.png)) 
 ## 👨‍💻 Author
 
 * **Your Name**
