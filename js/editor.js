@@ -1,110 +1,111 @@
-window.currentLogoStyle = 1;
-window.selectedCharacterId = 1;
-
 window.revealEditor = function() {
-    const n = document.getElementById("home-name");
-    if(!n || !n.value) { alert("Please enter a name!"); return; }
-    document.getElementById("editor-section").classList.remove("hidden-section");
-    document.getElementById("target-name").value = n.value;
-    window.renderCharacters();
-    setTimeout(() => { document.getElementById("editor-section").scrollIntoView({ behavior: 'smooth' }); }, 100);
-};
-
-window.renderCharacters = function() {
-    const grid = document.getElementById('char-grid');
-    if(!grid) return;
-    grid.innerHTML = "";
-    for(let i=1; i<=9; i++) {
-        grid.innerHTML += `<div onclick="window.selectFinal(this, ${i})" class="char-item aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-all">
-            <img src="./assets/logos/s${window.currentLogoStyle}_c${i}.png" class="w-full h-full object-cover">
-        </div>`;
+    const homeInput = document.getElementById('home-name');
+    const targetInput = document.getElementById('target-name');
+    const editorSection = document.getElementById('editor-section');
+    
+    if (!homeInput || homeInput.value.trim() === "") {
+        alert("Please enter a name!");
+        return;
     }
+
+    targetInput.value = homeInput.value.trim() || 'PLAYER';
+    
+    // Show editor
+    editorSection.classList.remove('hidden-section');
+    editorSection.style.display = 'flex';
+    
+    // Hide home section
+    const homeSection = document.querySelector('.bg-premium-dark');
+    if (homeSection) homeSection.style.display = 'none';
+
+    setTimeout(() => {
+        editorSection.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
 };
 
-window.selectFinal = function(el, id) {
-    window.selectedCharacterId = id;
-    document.getElementById('main-logo').src = `./assets/logos/s${window.currentLogoStyle}_c${id}.png`;
-    window.closeAllModals();
-};
-
-window.toggleModal = function(id, s) {
-    if(s) {
-        document.getElementById('modal-overlay').style.display = 'block';
-        setTimeout(() => { document.getElementById(id).classList.add('modal-active'); document.getElementById('modal-overlay').style.opacity = '1'; }, 10);
-    } else { window.closeAllModals(); }
-};
-
-window.closeAllModals = function() {
-    document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('modal-active'));
-    document.getElementById('modal-overlay').style.opacity = '0';
-    setTimeout(() => { document.getElementById('modal-overlay').style.display = 'none'; }, 400);
-};
-
-// --- PHOTOPEA ENGINE (THE FINAL FIX) ---
 window.generateFinalLogo = function() {
-    const name = (document.getElementById('target-name').value || "LOKAYA GFX").toUpperCase();
-    const num = document.getElementById('target-number').value || "";
-    const title = (document.getElementById('target-title').value || "").toUpperCase();
-
+    const name = (document.getElementById('target-name').value || 'PLAYER').toUpperCase();
+    const number = document.getElementById('target-number').value || '';
+    const title = (document.getElementById('target-title').value || 'LEGEND').toUpperCase();
+    
     const screen = document.getElementById('render-screen');
     const bar = document.getElementById('render-bar');
     const perc = document.getElementById('render-perc');
+    const preview = document.getElementById('render-preview');
 
-    screen.classList.remove('hidden');
-    screen.classList.add('flex');
-
-    let prog = 0;
+    preview.src = document.getElementById('main-logo').src;
+    screen.style.display = 'flex';
+    bar.style.width = '0%';
+    
+    let p = 0;
     const interval = setInterval(() => {
-        prog += 1; if(prog > 95) prog = 95;
-        bar.style.width = prog + "%";
-        perc.innerText = prog + "%";
-    }, 200);
+        p += 1; if (p > 95) p = 95;
+        bar.style.width = p + '%';
+        if (perc) perc.innerText = p + '%';
+    }, 150);
 
-    const psd = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s${window.currentLogoStyle}_c${window.selectedCharacterId}.psd`;
-    const font = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/Muro.otf`;
+    // හැමතිස්සෙම s1_c1.psd එක විතරක් render වෙනවා
+    const psdUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s1_c1.psd`;
+    const fontUrl = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/Muro.otf`;
 
-    // මෙතන මම LogoTitel (ඔයාගේ PSD එකේ තියෙන නම) පාවිච්චි කළා
     const pScript = `
-        app.loadFont('${font}');
-        function process() {
-            if(app.documents.length == 0) return;
-            var doc = app.activeDocument;
-            function setL(n, v) {
-                try { doc.artLayers.getByName(n).textItem.contents = v; } catch(e) {}
+        app.loadFont("${fontUrl}");
+        function runTask() {
+            if(app.documents.length > 0) {
+                var doc = app.activeDocument;
+                function setL(n, v) { try { doc.artLayers.getByName(n).textItem.contents = v; } catch(e) {} }
+                setL('LogoName', "${name}");
+                setL('LogoNumber', "${number}");
+                setL('LogoTitel', "${title}");
+                doc.saveToOE("png");
             }
-            setL('LogoName', '${name}');
-            setL('LogoNumber', '${num}');
-            setL('LogoTitel', '${title}'); // Fixed spelling to match your PSD
-            doc.saveToOE('png');
         }
-        // Wait until font is ready - Using a simple loop instead of setTimeout
-        var checkLimit = 0;
-        function checkReady() {
-            if(app.fontsLoaded || checkLimit > 50) { process(); }
-            else { checkLimit++; process(); } // Calling process directly since setTimeout is blocked
-        }
-        checkReady();
+        setTimeout(runTask, 4000);
     `;
 
-    const config = { "files": [psd, font], "script": pScript, "serverMode": true };
-    const iframe = document.createElement("iframe");
-    iframe.style.display = "none";
+    const config = {
+        files: [psdUrl, fontUrl],
+        script: pScript,
+        serverMode: true
+    };
+
+    let iframe = document.getElementById('photopea-iframe');
+    if (iframe) iframe.remove(); 
+
+    iframe = document.createElement('iframe');
+    iframe.id = 'photopea-iframe';
+    iframe.style.display = 'none';
     iframe.src = "https://www.photopea.com#" + encodeURI(JSON.stringify(config));
     document.body.appendChild(iframe);
 
-    window.addEventListener("message", function handle(e) {
+    const messageHandler = function(e) {
+        if (e.origin !== "https://www.photopea.com") return;
+        
         if (e.data instanceof ArrayBuffer) {
             clearInterval(interval);
-            bar.style.width = "100%";
-            perc.innerText = "100%";
-            const url = URL.createObjectURL(new Blob([e.data], {type: "image/png"}));
-            const a = document.createElement("a");
+            bar.style.width = '100%';
+            if (perc) perc.innerText = '100%';
+
+            const blob = new Blob([e.data], { type: 'image/png' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
             a.href = url;
-            a.download = `Logo_${name}.png`;
+            a.download = `${name}_Logo.png`;
             a.click();
-            setTimeout(() => { screen.classList.add('hidden'); document.body.removeChild(iframe); }, 1000);
-            window.removeEventListener("message", handle);
-        }
-    });
-};
+
+            setTimeout(() => {
+                screen.style.display = 'none';
+                document.body.removeChild(iframe);
+            }, 1000);
             
+            window.removeEventListener('message', messageHandler);
+        }
+    };
+
+    window.addEventListener('message', messageHandler);
+};
+
+// Coming soon
+window.showComingSoon = () => { document.getElementById('coming-soon-layer').style.display = 'flex'; };
+window.hideComingSoon = () => { document.getElementById('coming-soon-layer').style.display = 'none'; };
+        
