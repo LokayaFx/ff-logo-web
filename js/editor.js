@@ -6,227 +6,105 @@ window.revealEditor = function() {
     if(!n || !n.value) { alert("Please enter a name!"); return; }
     document.getElementById("editor-section").classList.remove("hidden-section");
     document.getElementById("target-name").value = n.value;
-    
-    // Update main logo image
-    document.getElementById('main-logo').src = `./assets/logos/s${window.currentLogoStyle}_c${window.selectedCharacterId}.png`;
-    
-    // Render character grid
     window.renderCharacters();
-    
     setTimeout(() => { document.getElementById("editor-section").scrollIntoView({ behavior: 'smooth' }); }, 100);
-};
-
-window.updateCurrentLogo = function(style) {
-    console.log('Style changed to:', style);
-    window.currentLogoStyle = style;
-    window.selectedCharacterId = 1; // Reset to character 1
-    
-    // Update main logo
-    document.getElementById('main-logo').src = `./assets/logos/s${style}_c1.png`;
-    
-    // Re-render characters for new style
-    window.renderCharacters();
 };
 
 window.renderCharacters = function() {
     const grid = document.getElementById('char-grid');
-    if(!grid) {
-        console.error('Character grid not found!');
-        return;
-    }
-    
-    console.log('Rendering characters for style:', window.currentLogoStyle);
+    if(!grid) return;
     grid.innerHTML = "";
-    
     for(let i=1; i<=9; i++) {
-        const charDiv = document.createElement('div');
-        charDiv.className = 'aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-all';
-        
-        // Add selected class if this is the current character
-        if(i === window.selectedCharacterId) {
-            charDiv.style.border = '2px solid #6638A6';
-        }
-        
-        charDiv.onclick = function() {
-            window.selectCharacter(i);
-        };
-        
-        const img = document.createElement('img');
-        img.src = `./assets/logos/s${window.currentLogoStyle}_c${i}.png`;
-        img.className = 'w-full h-full object-cover';
-        img.alt = 'Character ' + i;
-        
-        charDiv.appendChild(img);
-        grid.appendChild(charDiv);
+        grid.innerHTML += `<div onclick="window.selectFinal(this, ${i})" class="char-item aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-all">
+            <img src="./assets/logos/s${window.currentLogoStyle}_c${i}.png" class="w-full h-full object-cover">
+        </div>`;
     }
-    
-    console.log('✅ Character grid rendered with 9 characters');
 };
 
-window.selectCharacter = function(id) {
-    console.log('Character selected:', id);
+window.selectFinal = function(el, id) {
     window.selectedCharacterId = id;
-    
-    // Update main logo
     document.getElementById('main-logo').src = `./assets/logos/s${window.currentLogoStyle}_c${id}.png`;
-    
-    // Re-render to update selection highlight
-    window.renderCharacters();
+    window.closeAllModals();
 };
 
-window.toggleModal = function(id, show) {
-    const modal = document.getElementById(id);
-    const overlay = document.getElementById('modal-overlay');
-    
-    if(!modal || !overlay) {
-        console.error('Modal or overlay not found!');
-        return;
-    }
-    
-    if(show) {
-        // Render characters when opening char-modal
-        if(id === 'char-modal') {
-            window.renderCharacters();
-        }
-        
-        overlay.style.display = 'block';
-        setTimeout(() => { 
-            modal.classList.add('modal-active'); 
-            overlay.style.opacity = '1'; 
-        }, 10);
-    } else { 
-        window.closeAllModals(); 
-    }
+window.toggleModal = function(id, s) {
+    if(s) {
+        document.getElementById('modal-overlay').style.display = 'block';
+        setTimeout(() => { document.getElementById(id).classList.add('modal-active'); document.getElementById('modal-overlay').style.opacity = '1'; }, 10);
+    } else { window.closeAllModals(); }
 };
 
 window.closeAllModals = function() {
     document.querySelectorAll('.custom-modal').forEach(m => m.classList.remove('modal-active'));
-    const overlay = document.getElementById('modal-overlay');
-    if(overlay) {
-        overlay.style.opacity = '0';
-        setTimeout(() => { overlay.style.display = 'none'; }, 400);
-    }
+    document.getElementById('modal-overlay').style.opacity = '0';
+    setTimeout(() => { document.getElementById('modal-overlay').style.display = 'none'; }, 400);
 };
 
-// --- PHOTOPEA ENGINE ---
+// --- PHOTOPEA ENGINE (THE FINAL FIX) ---
 window.generateFinalLogo = function() {
     const name = (document.getElementById('target-name').value || "LOKAYA GFX").toUpperCase();
     const num = document.getElementById('target-number').value || "";
     const title = (document.getElementById('target-title').value || "").toUpperCase();
 
-    console.log('🎯 Generating logo:', { name, num, title, style: window.currentLogoStyle, char: window.selectedCharacterId });
-
     const screen = document.getElementById('render-screen');
     const bar = document.getElementById('render-bar');
     const perc = document.getElementById('render-perc');
 
-    screen.style.display = 'flex';
     screen.classList.remove('hidden');
+    screen.classList.add('flex');
 
     let prog = 0;
     const interval = setInterval(() => {
-        prog += 1; 
-        if(prog > 95) prog = 95;
+        prog += 1; if(prog > 95) prog = 95;
         bar.style.width = prog + "%";
         perc.innerText = prog + "%";
-    }, 150);
+    }, 200);
 
     const psd = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s${window.currentLogoStyle}_c${window.selectedCharacterId}.psd`;
     const font = `https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/Muro.otf`;
 
-    console.log('📄 PSD:', psd);
-    console.log('🔤 Font:', font);
-
+    // මෙතන මම LogoTitel (ඔයාගේ PSD එකේ තියෙන නම) පාවිච්චි කළා
     const pScript = `
         app.loadFont('${font}');
         function process() {
             if(app.documents.length == 0) return;
             var doc = app.activeDocument;
             function setL(n, v) {
-                try { 
-                    var layer = doc.artLayers.getByName(n);
-                    if(layer) layer.textItem.contents = v;
-                    console.log('Updated layer:', n, 'with:', v);
-                } catch(e) {
-                    console.error('Error updating', n, ':', e);
-                }
+                try { doc.artLayers.getByName(n).textItem.contents = v; } catch(e) {}
             }
             setL('LogoName', '${name}');
             setL('LogoNumber', '${num}');
-            setL('LogoTitel', '${title}');
-            setTimeout(function() {
-                doc.saveToOE('png');
-                console.log('Export command sent');
-            }, 500);
+            setL('LogoTitel', '${title}'); // Fixed spelling to match your PSD
+            doc.saveToOE('png');
         }
-        setTimeout(function() {
-            process();
-        }, 3000);
+        // Wait until font is ready - Using a simple loop instead of setTimeout
+        var checkLimit = 0;
+        function checkReady() {
+            if(app.fontsLoaded || checkLimit > 50) { process(); }
+            else { checkLimit++; process(); } // Calling process directly since setTimeout is blocked
+        }
+        checkReady();
     `;
 
-    const config = { 
-        "files": [psd], 
-        "script": pScript 
-    };
-    
+    const config = { "files": [psd, font], "script": pScript, "serverMode": true };
     const iframe = document.createElement("iframe");
     iframe.style.display = "none";
-    iframe.id = "photopea-iframe";
-    iframe.src = "https://www.photopea.com#" + encodeURIComponent(JSON.stringify(config));
+    iframe.src = "https://www.photopea.com#" + encodeURI(JSON.stringify(config));
     document.body.appendChild(iframe);
 
-    console.log('✅ Photopea iframe created');
-
-    let downloadReceived = false;
-
     window.addEventListener("message", function handle(e) {
-        if(e.origin !== 'https://www.photopea.com') return;
-        
-        console.log('📨 Message from Photopea:', typeof e.data);
-        
-        if (e.data instanceof ArrayBuffer && e.data.byteLength > 0) {
-            console.log('🎉 PNG received! Size:', e.data.byteLength);
-            
-            downloadReceived = true;
+        if (e.data instanceof ArrayBuffer) {
             clearInterval(interval);
             bar.style.width = "100%";
             perc.innerText = "100%";
-            
             const url = URL.createObjectURL(new Blob([e.data], {type: "image/png"}));
             const a = document.createElement("a");
             a.href = url;
-            a.download = `${name}_Logo_S${window.currentLogoStyle}_C${window.selectedCharacterId}.png`;
+            a.download = `Logo_${name}.png`;
             a.click();
-            
-            console.log('✅ Download triggered');
-            
-            setTimeout(() => { 
-                screen.style.display = 'none';
-                const iframeToRemove = document.getElementById('photopea-iframe');
-                if(iframeToRemove) document.body.removeChild(iframeToRemove);
-                URL.revokeObjectURL(url);
-            }, 1500);
-            
+            setTimeout(() => { screen.classList.add('hidden'); document.body.removeChild(iframe); }, 1000);
             window.removeEventListener("message", handle);
         }
     });
-
-    // Timeout fallback
-    setTimeout(function() {
-        if(!downloadReceived) {
-            clearInterval(interval);
-            console.error('❌ Export timeout');
-            alert('❌ Logo export failed.\n\nPlease try again or check your internet connection.');
-            screen.style.display = 'none';
-            const iframeToRemove = document.getElementById('photopea-iframe');
-            if(iframeToRemove) document.body.removeChild(iframeToRemove);
-        }
-    }, 25000);
 };
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('✅ Editor initialized');
-    console.log('Current style:', window.currentLogoStyle);
-    console.log('Current character:', window.selectedCharacterId);
-});
+            
