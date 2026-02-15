@@ -277,18 +277,18 @@ window.generateFinalLogo = function() {
     renderScreen.classList.remove('hidden');
     renderBar.style.width = '0%';
     if (renderPerc) renderPerc.textContent = '0%';
-    if (renderStatus) renderStatus.textContent = 'Initializing Photopea Engine...';
+    if (renderStatus) renderStatus.textContent = 'Loading PSD file...';
     
     console.log('✅ Render screen shown');
     
     // Animate progress bar
     let progress = 0;
     const progressInterval = setInterval(function() {
-        progress += 1;
-        if (progress > 95) progress = 95;
+        progress += 0.5; // Slower progress
+        if (progress > 90) progress = 90; // Stop at 90%
         renderBar.style.width = progress + '%';
-        if (renderPerc) renderPerc.textContent = progress + '%';
-    }, 150);
+        if (renderPerc) renderPerc.textContent = Math.floor(progress) + '%';
+    }, 200);
     
     // Build URLs
     const psdUrl = 'https://raw.githubusercontent.com/LokayaFx/ff-logo-web/main/assets/psds/s' + window.currentLogoStyle + '_c' + window.selectedCharacterId + '.psd';
@@ -297,30 +297,50 @@ window.generateFinalLogo = function() {
     console.log('📄 PSD URL:', psdUrl);
     console.log('🔤 Font URL:', fontUrl);
     
-    // Photopea script
+    // Update status
+    if (renderStatus) renderStatus.textContent = 'Loading custom font...';
+    
+    // Photopea script with better error handling
     const photopeaScript = 
+        'console.log("🎨 Photopea script started");' +
         'app.loadFont("' + fontUrl + '");' +
+        'console.log("🔤 Font loading initiated");' +
         'function process() {' +
-        '  if(app.documents.length == 0) return;' +
-        '  var doc = app.activeDocument;' +
-        '  function setLayer(name, value) {' +
-        '    try {' +
-        '      var layer = doc.artLayers.getByName(name);' +
-        '      if(layer) layer.textItem.contents = value;' +
-        '      console.log("Updated", name, "with", value);' +
-        '    } catch(e) {' +
-        '      console.error("Error updating", name, ":", e);' +
+        '  try {' +
+        '    if(app.documents.length == 0) {' +
+        '      console.error("❌ No document loaded");' +
+        '      return;' +
         '    }' +
+        '    var doc = app.activeDocument;' +
+        '    console.log("📄 Document loaded:", doc.name);' +
+        '    function setLayer(name, value) {' +
+        '      try {' +
+        '        var layer = doc.artLayers.getByName(name);' +
+        '        if(layer) {' +
+        '          layer.textItem.contents = value;' +
+        '          console.log("✅ Updated", name, "with", value);' +
+        '        }' +
+        '      } catch(e) {' +
+        '        console.error("❌ Error updating", name, ":", e.message);' +
+        '      }' +
+        '    }' +
+        '    setLayer("LogoName", "' + logoName.replace(/"/g, '\\"').replace(/\\/g, '\\\\') + '");' +
+        '    setLayer("LogoNumber", "' + logoNumber.replace(/"/g, '\\"').replace(/\\/g, '\\\\') + '");' +
+        '    setLayer("LogoTitel", "' + logoTitle.replace(/"/g, '\\"').replace(/\\/g, '\\\\') + '");' +
+        '    console.log("📝 All layers updated");' +
+        '    setTimeout(function() {' +
+        '      console.log("💾 Starting export...");' +
+        '      doc.saveToOE("png");' +
+        '      console.log("✅ Export command sent");' +
+        '    }, 1000);' +
+        '  } catch(e) {' +
+        '    console.error("❌ Process error:", e.message);' +
         '  }' +
-        '  setLayer("LogoName", "' + logoName.replace(/"/g, '\\"') + '");' +
-        '  setLayer("LogoNumber", "' + logoNumber.replace(/"/g, '\\"') + '");' +
-        '  setLayer("LogoTitel", "' + logoTitle.replace(/"/g, '\\"') + '");' +
-        '  setTimeout(function() {' +
-        '    doc.saveToOE("png");' +
-        '    console.log("Export command sent");' +
-        '  }, 500);' +
         '}' +
-        'setTimeout(function() { process(); }, 3000);';
+        'setTimeout(function() {' +
+        '  console.log("⏰ Executing process after delay");' +
+        '  process();' +
+        '}, 4000);';
     
     // Create Photopea configuration
     const config = {
@@ -336,6 +356,8 @@ window.generateFinalLogo = function() {
     document.body.appendChild(iframe);
     
     console.log('✅ Photopea iframe created');
+    
+    if (renderStatus) renderStatus.textContent = 'Processing your logo...';
     
     let downloadReceived = false;
     
@@ -354,7 +376,7 @@ window.generateFinalLogo = function() {
             
             renderBar.style.width = '100%';
             if (renderPerc) renderPerc.textContent = '100%';
-            if (renderStatus) renderStatus.textContent = 'Download starting...';
+            if (renderStatus) renderStatus.textContent = 'Download complete!';
             
             // Create download
             const blob = new Blob([event.data], { type: 'image/png' });
@@ -364,7 +386,9 @@ window.generateFinalLogo = function() {
             const a = document.createElement('a');
             a.href = url;
             a.download = filename;
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
             
             console.log('✅ Download triggered:', filename);
             
@@ -378,30 +402,43 @@ window.generateFinalLogo = function() {
                 window.removeEventListener('message', handlePhotopeaMessage);
                 console.log('🧹 Cleanup completed');
             }, 1500);
+        } else if (typeof event.data === 'string') {
+            console.log('ℹ️ String message:', event.data);
         }
     }
     
     window.addEventListener('message', handlePhotopeaMessage);
     
-    // Timeout fallback
+    // Extended timeout (40 seconds)
     setTimeout(function() {
         if (!downloadReceived) {
             clearInterval(progressInterval);
-            console.error('❌ Export timeout - no ArrayBuffer received');
+            console.error('❌ Export timeout - no ArrayBuffer received after 40 seconds');
             
             if (renderStatus) {
-                renderStatus.textContent = 'Export timeout - Please try again';
+                renderStatus.innerHTML = '❌ Export timeout<br><small>This PSD may have an issue. Try a different logo.</small>';
             }
             
+            // Show user-friendly error
             setTimeout(function() {
                 renderScreen.style.display = 'none';
                 renderScreen.classList.add('hidden');
                 const iframeToRemove = document.getElementById('photopea-iframe');
                 if (iframeToRemove) document.body.removeChild(iframeToRemove);
-                alert('❌ Logo export failed.\n\nPlease try again or check your internet connection.');
+                window.removeEventListener('message', handlePhotopeaMessage);
+                
+                alert('❌ Logo export failed.\n\n' +
+                      'Possible reasons:\n' +
+                      '• The selected PSD file may be corrupted\n' +
+                      '• Slow internet connection\n' +
+                      '• GitHub servers are slow\n\n' +
+                      'Solutions:\n' +
+                      '1. Try a different logo (different style/character)\n' +
+                      '2. Check your internet connection\n' +
+                      '3. Wait a moment and try again');
             }, 2000);
         }
-    }, 25000);
+    }, 40000); // 40 seconds timeout
 };
 
 // ========================
@@ -434,3 +471,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('📜 All functions defined successfully');
+    
