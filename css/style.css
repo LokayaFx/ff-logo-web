@@ -1,5 +1,4 @@
 
-/* --- Base Styles --- */
 html { 
     scroll-behavior: smooth; 
 }
@@ -12,7 +11,6 @@ body {
     overflow-x: hidden; 
 }
 
-/* --- Layout Sections --- */
 .bg-premium-dark { 
     background: radial-gradient(circle at top right, #1a1033 0%, #0d0d12 100%); 
     position: relative; 
@@ -28,7 +26,6 @@ body {
     display: none; 
 }
 
-/* --- Typography --- */
 .hero-title {
     display: inline-block;
     line-height: 1.4; 
@@ -38,7 +35,6 @@ body {
     -webkit-text-fill-color: transparent;
 }
 
-/* --- Form Elements --- */
 .premium-input { 
     background: rgba(255, 255, 255, 0.03); 
     border: 1px solid rgba(255, 255, 255, 0.08); 
@@ -53,7 +49,6 @@ body {
     outline: none;
 }
 
-/* --- Buttons --- */
 .glass-btn {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08); 
@@ -73,7 +68,6 @@ body {
     color: white; 
 }
 
-/* --- Logo & Cards --- */
 .logo-display { 
     background: #000; 
     border-radius: 45px; 
@@ -87,7 +81,6 @@ body {
     background: rgba(102, 56, 166, 0.1) !important; 
 }
 
-/* --- Headers --- */
 #slim-header { 
     position: fixed; 
     top: -80px; 
@@ -107,7 +100,6 @@ body {
     top: 0; 
 }
 
-/* --- Modals --- */
 .custom-modal { 
     transform: translateY(100%); 
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
@@ -130,7 +122,6 @@ body {
     display: none; 
 }
 
-/* --- Layers --- */
 #coming-soon-layer { 
     position: fixed; 
     inset: 0; 
